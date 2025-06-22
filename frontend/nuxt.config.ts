@@ -5,6 +5,15 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-  modules: ["@nuxt/eslint", "@nuxt/icon", "@nuxt/image", "@nuxt/ui"],
+  devServer: {
+    port: 3400,
+  },
+  modules: [
+    "@nuxt/eslint",
+    "@nuxt/icon",
+    "@nuxt/image",
+    "@nuxtjs/tailwindcss",
+    "@primevue/nuxt-module",
+  ],
 });
 
