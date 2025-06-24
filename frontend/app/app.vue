@@ -154,6 +154,19 @@ class="object-cover object-center w-full h-64 rounded-lg lg:h-80"
 		<section class="bg-orange-400 text-white" />
 	</section>
 	<section />
+	<section class="container mx-auto py-16">
+		<div class="flex flex-col items-center bg-orange-200 text-orange-950 rounded-xl py-12">
+			<h2 class="text-5xl font-bold">Try Webstandr</h2>
+			<p class="mt-8">The only way to understand our impact is to try it. We'll provide you the stats you need for your
+				company's
+				website ranking</p>
+
+			<button
+				class="font-bold w-full px-4 py-4 mt-6 text-sm tracking-wider text-white uppercase transition-colors duration-300 transform bg-orange-600 rounded-lg lg:w-auto hover:bg-orange-500 focus:outline-none focus:bg-orange-500">
+				Add your website
+			</button>
+		</div>
+	</section>
 	<footer class="bg-white">
 		<div class="container flex flex-col items-center justify-between p-6 mx-auto space-y-4 sm:space-y-0 sm:flex-row">
 			<NuxtLink to="/" class="flex gap-2">
