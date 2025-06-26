@@ -1,42 +1,10 @@
 <template>
 	<main>
-		<header>
-			<nav class="relative bg-white">
-				<div class="container px-6 py-4 mx-auto md:flex md:justify-between md:items-center">
-					<div class="flex items-center justify-between">
-						<NuxtLink to="/" class="flex gap-2">
-							<h1 class="text-gray-900 font-bold text-xl">webstandr</h1>
-							<div class="p-2 bg-orange-500 rounded-full" />
-						</NuxtLink>
-						<!-- Mobile menu button -->
-						<div class="flex md:hidden">
-							<button type="button" class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600"
-								aria-label="toggle menu">
-								<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
-									stroke="currentColor" stroke-width="2">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16" />
-								</svg>
-							</button>
-						</div>
-					</div>
-					<!-- Mobile Menu -->
-					<div
-						class="absolute inset-x-0 z-20 w-full px-6 py-4 bg-white md:bg-transparent md:mt-0 md:p-0 md:top-0 md:relative md:w-auto md:flex md:items-center">
-						<div class="flex flex-col md:flex-row md:mx-6">
-							<NuxtLink
-								class="my-2 text-gray-700 transition-colors duration-300 transform hover:text-orange-500 md:mx-4 md:my-0"
-								href="/auth/login">
-								Login
-							</NuxtLink>
-						</div>
-					</div>
-				</div>
-			</nav>
-		</header>
-		<div class="container px-6 py-16 mx-auto">
+		<LandingHeader />
+		<section class="container px-6 py-16 mx-auto">
 			<div class="items-center lg:flex">
 				<div class="">
-					<div class="">
+					<div class="flex flex-col items-start">
 						<h1 class="text-3xl font-semibold text-gray-800 lg:text-4xl">SEO ranker across all <br> <span
 								class="text-orange-500 ">Search Engines</span></h1>
 						<p class="mt-3 text-gray-600 mb-6">
@@ -49,11 +17,11 @@
 						</NuxtLink>
 					</div>
 				</div>
-				<div class="flex items-center justify-center w-full mt-6 lg:mt-0 lg:w-1/2">
+				<div class="flex items-center justify-center w-full mt-6 lg:mt-0 lg:w-1/2 hidden lg:block">
 					<img class="w-full h-full lg:max-w-3xl" src="/heroimage.png" alt="Catalogue-pana.svg">
 				</div>
 			</div>
-		</div>
+		</section>
 		<section class="container mx-auto px-4 py-16">
 			<h2 class="text-center font-bold tracking-wider text-xl text-gray-900 mb-12">Rank from various Search Engines</h2>
 			<div class="grid grid-cols-4 gap-4 grayscale">
@@ -64,7 +32,7 @@
 			</div>
 		</section>
 		<section />
-		<section class="container mx-auto py-20 mb-8">
+		<section class="container mx-auto py-20 mb-8 px-4">
 			<div class="flex items-center justify-center mb-8">
 				<p class="px-4 py-1 border border-gray-300 rounded-lg text-gray-900">USE CASES</p>
 			</div>
@@ -116,7 +84,7 @@
 				</div>
 			</div>
 		</section>
-		<section class="bg-orange-400 text-white">
+		<section class="bg-orange-400 text-white px-4">
 			<div class="container mx-auto py-16">
 				<div class="flex">
 					<p class="px-4 py-1 border rounded-md font-medium">IMPACT</p>
@@ -126,7 +94,7 @@
 						webstandr gives your websites <br>
 						statistics and insights
 					</h2>
-					<div class="grid grid-cols-4 gap-8">
+					<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
 						<div class="bg-orange-300 p-6 rounded-xl">
 							<p class="text-5xl font-bold mb-10">500+</p>
 							<p class="text-xl">Websites</p>
@@ -146,18 +114,22 @@
 					</div>
 				</div>
 			</div>
-			<section class="bg-orange-400 text-white" />
 		</section>
-		<section />
-		<section class="container mx-auto py-16">
-			<div class="flex flex-col items-center bg-orange-200 text-orange-950 rounded-xl py-12">
-				<h2 class="text-5xl font-bold">Try Webstandr</h2>
+		<section class="container mx-auto py-16 px-4">
+			<div class="flex flex-col items-center bg-orange-200 text-orange-950 rounded-xl py-12 px-4">
+				<div class="flex gap-2 flex-wrap justify-center items-center">
+					<h2 class="text-5xl font-bold">Try</h2>
+					<div class="flex gap-2 text-center">
+						<h2 class="text-5xl font-bold">webstandr</h2>
+						<div class="p-3 bg-white rounded-full" />
+					</div>
+				</div>
 				<p class="mt-8">The only way to understand our impact is to try it. We'll provide you the stats you need for
 					your
 					company's
 					website ranking</p>
 				<NuxtLink to="/auth/login"
-					class="font-bold w-full px-4 py-4 mt-6 text-sm tracking-wider text-white uppercase transition-colors duration-300 transform bg-orange-600 rounded-lg lg:w-auto hover:bg-orange-500 focus:outline-none focus:bg-orange-500">
+					class="text-center font-bold w-full px-4 py-4 mt-6 text-sm tracking-wider text-white uppercase transition-colors duration-300 transform bg-orange-600 rounded-lg lg:w-auto hover:bg-orange-500 focus:outline-none focus:bg-orange-500">
 					Add your website
 				</NuxtLink>
 			</div>
