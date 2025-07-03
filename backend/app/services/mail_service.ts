@@ -12,7 +12,7 @@ export class MailService {
         message
           .to(email)
           .from(env.get('SMTP_EMAIL', 'mailer@exampledev.com'))
-          .subject('Senopin Email Verification')
+          .subject('webstandr Email Verification')
           .htmlView('emails/verify-email', { email, verifyUrl })
       })
     } catch (error) {
@@ -24,7 +24,7 @@ export class MailService {
       message
         .to(email)
         .from(env.get('SMTP_EMAIL', 'mailer@exampledev.com'))
-        .subject('Senopin Password Reset')
+        .subject('webstandr Password Reset')
         .htmlView('emails/password-reset', { email, resetUrl })
     })
   }

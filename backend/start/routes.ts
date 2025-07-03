@@ -16,7 +16,7 @@ const EmailsController = () => import('#controllers/emails_controller')
 
 router.get('/', async () => {
   return {
-    message: 'Senopin API v1.0.0 by DV8',
+    message: 'webstandr API v1.0.0 by DV8',
   }
 })
 router
