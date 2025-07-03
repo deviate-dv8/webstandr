@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   app: {
     head: {
-      link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+      link: [{ rel: "icon", type: "image/png", href: "/favicon-32x32.png" }],
     },
   },
   devtools: { enabled: true },
