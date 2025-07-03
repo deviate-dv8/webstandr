@@ -10,6 +10,7 @@ import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
 import { throttlePasswordReset } from './limiter.js'
 
+const HealthChecksController = () => import('#controllers/health_checks_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const UsersController = () => import('#controllers/users_controller')
 const EmailsController = () => import('#controllers/emails_controller')
@@ -19,6 +20,7 @@ router.get('/', async () => {
     message: 'webstandr API v1.0.0 by DV8',
   }
 })
+router.get('health', [HealthChecksController])
 router
   .group(() => {
     // /api/auth
