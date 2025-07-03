@@ -14,16 +14,8 @@ export default class UsersController {
   /**
    * Handle form submission for the create action
    */
-  async store({ request, response }: HttpContext) {
+  async store({ request }: HttpContext) {
     const payload = await request.validateUsing(createUserValidator)
-    const emailCheck = await User.findBy('email', payload.email)
-    if (emailCheck) {
-      return response.badRequest({ message: 'Email already exists' })
-    }
-    const usernameCheck = await User.findBy('username', payload.username)
-    if (usernameCheck) {
-      return response.badRequest({ message: 'Username already exists' })
-    }
     const newUser = await User.create(payload)
     UserRegistered.dispatch(newUser)
     return newUser
