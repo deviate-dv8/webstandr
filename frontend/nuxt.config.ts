@@ -1,4 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import Aura from "@primeuix/themes/aura";
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   app: {
@@ -12,6 +13,18 @@ export default defineNuxtConfig({
   },
   devServer: {
     port: 3400,
+  },
+  primevue: {
+    options: {
+      theme: {
+        preset: Aura,
+        options: {
+          prefix: "p",
+          darkModeSelector: false,
+          cssLayer: false,
+        },
+      },
+    },
   },
   auth: {
     baseURL: `${process.env.BACKEND_URL}/api/auth`,
@@ -41,3 +54,4 @@ export default defineNuxtConfig({
     "@primevue/nuxt-module",
   ],
 });
+
