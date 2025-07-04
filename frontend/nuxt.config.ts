@@ -2,6 +2,11 @@
 import Aura from "@primeuix/themes/aura";
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
+  runtimeConfig: {
+    public: {
+      API_URL: process.env.BACKEND_URL,
+    },
+  },
   app: {
     head: {
       link: [{ rel: "icon", type: "image/png", href: "/favicon-32x32.png" }],

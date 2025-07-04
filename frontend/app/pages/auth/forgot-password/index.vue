@@ -1,3 +1,31 @@
+<script setup lang="ts">
+const email = ref('');
+const toast = useToast();
+const API = useRuntimeConfig().public.API_URL;
+async function requestForgotPassword() {
+	const data = await $fetch(`${API}/api/email`, {
+		method: 'POST',
+		body: {
+			email: email.value,
+		},
+	});
+	if (data) {
+		toast.add({
+			severity: 'success',
+			detail: 'If the email exists, a password reset link has been sent to your email.',
+			life: 3000,
+			summary: 'Password Reset Request Sent',
+		});
+	} else {
+		toast.add({
+			severity: 'error',
+			detail: 'An error occurred while sending the password reset request. Please try again later.',
+			life: 3000,
+			summary: 'Error Sending Request',
+		});
+	}
+}
+</script>
 <template>
 	<main class="min-h-[100svh]">
 		<AuthHeader />
@@ -14,7 +42,8 @@
 								class="block w-full px-5 py-3 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-lg focus:border-orange-400 focus:ring-orange-400 focus:outline-none focus:ring focus:ring-opacity-40">
 						</div>
 						<button
-							class="w-full px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-orange-500 rounded-lg hover:bg-orange-400 focus:outline-none focus:ring focus:ring-orange-300 focus:ring-opacity-50">
+							class="w-full px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-orange-500 rounded-lg hover:bg-orange-400 focus:outline-none focus:ring focus:ring-orange-300 focus:ring-opacity-50"
+							@click.prevent="requestForgotPassword">
 							Submit
 						</button>
 						<div class="mt-6 text-center">
