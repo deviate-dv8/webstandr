@@ -21,7 +21,7 @@ const showDrawer = ref(false);
 						</button>
 					</div>
 					<Drawer v-model:visible="showDrawer" :show-close-icon="false" position="top" style="height: auto">
-						<div class="bg-white flex flex-col p-4">
+						<div class="bg-white flex flex-col text-lg font-bold">
 							<NuxtLink
 								class="my-2 text-gray-700 transition-colors duration-300 transform hover:text-orange-500 md:mx-4 md:my-0"
 								href="/about">
