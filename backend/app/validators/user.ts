@@ -6,7 +6,7 @@ export const createUserValidator = vine.compile(
       table: 'users',
       column: 'email',
     }),
-    full_name: vine.string().minLength(4).maxLength(32),
+    full_name: vine.string().minLength(4).maxLength(32).nullable().optional(),
     username: vine.string().minLength(4).maxLength(32).unique({
       table: 'users',
       column: 'username',
