@@ -16,5 +16,5 @@ export const throttle = limiter.define('global', () => {
 })
 
 export const throttlePasswordReset = limiter.define('password_reset', () => {
-  return limiter.allowRequests(5).every('1 hour')
+  return limiter.allowRequests(10).every('30 minutes')
 })
