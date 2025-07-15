@@ -23,7 +23,7 @@ export default class EmailsController {
       return { message: 'Email already verified' }
     }
     const signedUrl = this.hashHelperService.generateSignedUrl(
-      '/api/email/verify-email',
+      '/auth/verify-email',
       user.id,
       user.email,
       60
@@ -63,7 +63,7 @@ export default class EmailsController {
       return { message: 'Password reset link sent' }
     }
     const { link: signedUrl, expires } = this.hashHelperService.generateSignedUrlPasswordReset(
-      '/api/email/reset-password',
+      '/auth/forgot-password',
       user.id,
       user.email,
       60

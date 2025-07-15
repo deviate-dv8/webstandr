@@ -14,7 +14,7 @@ export default class SendVerificationEmail {
   async handle(userRegistered: UserRegistered) {
     const user = userRegistered.user
     const signedUrl = this.hashHelperService.generateSignedUrl(
-      '/api/email/verify-email',
+      '/auth/verify-email',
       user.id,
       user.email,
       60

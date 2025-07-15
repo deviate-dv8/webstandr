@@ -13,7 +13,7 @@ export class HashHelperService {
     const signature = HashHelperService.createSignature(userId, hash, expires)
 
     // Generate URL in Laravel format
-    return `${env.get('APP_URL')}${route}/${userId}/${hash}?expires=${expires}&signature=${signature}`
+    return `${env.get('FRONTEND_URL')}${route}/${userId}/${hash}?expires=${expires}&signature=${signature}`
   }
   public generateSignedUrlPasswordReset(
     route: string,
@@ -30,7 +30,7 @@ export class HashHelperService {
     // Generate URL in Laravel format
     return {
       expires,
-      link: `${env.get('APP_URL')}${route}/${userId}/${hash}?expires=${expires}&signature=${signature}`,
+      link: `${env.get('FRONTEND_URL')}${route}/${userId}/${hash}?expires=${expires}&signature=${signature}`,
     }
   }
   /**
