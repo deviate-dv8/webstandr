@@ -1,7 +1,4 @@
 <script setup lang="ts">
-definePageMeta({
-	middleware: ['is-authorized']
-})
 const email = ref('');
 const toast = useToast();
 const API = useRuntimeConfig().public.API_URL;

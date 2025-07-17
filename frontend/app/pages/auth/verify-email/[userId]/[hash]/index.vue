@@ -1,7 +1,4 @@
 <script setup lang="ts">
-definePageMeta({
-	middleware: ['is-authorized']
-})
 const API = useRuntimeConfig().public.API_URL;
 const { userId, hash } = useRoute().params as { userId: string; hash: string };
 const { expires, signature } = useRoute().query as { expires: string; signature: string };
