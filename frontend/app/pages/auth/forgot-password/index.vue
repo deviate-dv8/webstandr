@@ -21,6 +21,7 @@ async function requestForgotPassword() {
 				return await navigateTo('/auth/login', { external: true });
 			}, 5000)
 		}
+		successfullySent.value = true;
 	}
 	catch {
 		toast.add({
@@ -31,12 +32,13 @@ async function requestForgotPassword() {
 		});
 	}
 }
+const successfullySent = ref(false);
 </script>
 <template>
 	<main class="min-h-[100svh]">
 		<AuthHeader />
 		<section class="min-h-[calc(100svh-60px)] flex items-center justify-center">
-			<div class="container flex flex-col items-center justify-center px-6 mx-auto">
+			<div v-if="!successfullySent" class="container flex flex-col items-center justify-center px-6 mx-auto">
 				<h1 class="mt-4 text-2xl font-semibold tracking-wide text-center text-gray-800 capitalize md:text-3xl">
 					Forgot Password
 				</h1>
@@ -59,7 +61,11 @@ v-model="email" type="email" placeholder="Enter your email" required
 							</NuxtLink>
 						</div>
 					</form>
+					<div />
 				</div>
+			</div>
+			<div v-else class="container flex flex-col items-center justify-center px-6 mx-auto">
+				<p class="text-gray-800 font-bold">Successfully sent to {{ email }}. Redirecting...</p>
 			</div>
 		</section>
 	</main>
