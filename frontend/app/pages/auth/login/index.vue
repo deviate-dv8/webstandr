@@ -1,4 +1,7 @@
 <script setup lang="ts">
+definePageMeta({
+	middleware: ['is-authorized']
+})
 const { signIn } = useAuth();
 const loginCredentials = reactive({
 	email: '',

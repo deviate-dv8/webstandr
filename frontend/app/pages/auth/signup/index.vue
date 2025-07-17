@@ -1,5 +1,7 @@
 <script setup lang='ts'>
-
+definePageMeta({
+	middleware: ['is-authorized']
+})
 const { signUp } = useAuth();
 const signUpCredentials = reactive({
 	username: '',
@@ -34,14 +36,15 @@ async function signUpHandler() {
 		await signUp(signUpCredentials, { preventLoginFlow: true, callGetSession: false })
 		signUpError.value = false;
 		signUpErrorMessages.value = [];
+		signUpSuccessful.value = true;
 		toast.add({
 			severity: 'success',
 			detail: 'Sign up successful! Please check your email to verify your account.',
 			life: 3000,
 			summary: 'Signing up...',
 		})
-		setTimeout(async () => {
-			return await navigateTo('/auth/login', { external: true });
+		setTimeout(() => {
+			useRouter().push('/auth/login');
 		}, 3000)
 	}
 	catch (error) {
@@ -63,12 +66,13 @@ const signUpError = ref(false);
 const signUpErrorMessages = ref<string[]>([]);
 const showPassword = ref(false);
 const toast = useToast();
+const signUpSuccessful = ref(false)
 </script>
 <template>
 	<main class="min-h-[100svh]">
 		<AuthHeader />
 		<section class="min-h-[calc(100svh-60px)] flex items-center justify-center">
-			<div class="w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-md">
+			<div v-if="!signUpSuccessful" class="w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-md">
 				<div class="px-6 py-4">
 					<h3 class="mt-3 text-xl font-medium text-center text-gray-600">Sign up</h3>
 					<form @submit.prevent="signUpHandler">
@@ -125,6 +129,21 @@ v-else type="button" class="absolute right-4 top-3 hover:text-gray-500 duration-
 					<span class="text-sm text-gray-600">Already have an account? </span>
 					<NuxtLink to="/auth/login" class="mx-2 text-sm font-bold text-orange-500 hover:underline">login</NuxtLink>
 				</div>
+			</div>
+			<div v-else class="container flex flex-col items-center justify-center px-6 mx-auto">
+				<Icon name="icon-park-solid:check-one" style="font-size:4rem; color:green" />
+				<h1 class="mt-4 text-2xl font-semibold tracking-wide text-center text-gray-800 capitalize md:text-3xl">
+					Account Created Successfully
+				</h1>
+				<p class="mt-2 text-gray-600 text-center">
+					Successfully Created Account. You will be redirected to the login page shortly.
+				</p>
+				<NuxtLink to="/auth/login" class="mt-6 text-sm text-orange-500 hover:underline">
+					<button
+						class="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-orange-500 rounded-lg hover:bg-orange-400 focus:outline-none focus:ring focus:ring-orange-300 focus:ring-opacity-50">
+						Go to Login
+					</button>
+				</NuxtLink>
 			</div>
 		</section>
 	</main>
