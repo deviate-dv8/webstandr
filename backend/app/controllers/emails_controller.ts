@@ -93,6 +93,12 @@ export default class EmailsController {
     if (!isValid) {
       response.abort({ message: 'Invalid or Expired password reset link' })
     }
+    // Convert expires (timestamp) to Luxon DateTime
+    const expiresAt = DateTime.fromSeconds(expires)
+    // Ensure reset link hasn't been used before expiration
+    if (user.passwordResetAt && user.passwordResetAt.toMillis() > expiresAt.toMillis()) {
+      return response.badRequest({ message: 'Reset link has already been used or expired' })
+    }
     return { message: 'Password reset link is valid', email: user.email }
   }
 
