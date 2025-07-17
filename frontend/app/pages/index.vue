@@ -1,3 +1,8 @@
+<script lang="ts" setup>
+definePageMeta({
+	middleware: ['is-authorized']
+})
+</script>
 <template>
 	<main>
 		<LandingHeader />
@@ -11,7 +16,8 @@
 							Monitor your website’s position on Google and Bing. Stay updated, spot trends, and grow with clear
 							insights.
 						</p>
-						<NuxtLink to="/auth/login"
+						<NuxtLink
+to="/auth/login"
 							class="w-full px-5 py-2 text-sm tracking-wider text-white uppercase transition-colors duration-300 transform bg-orange-600 rounded-lg lg:w-auto hover:bg-orange-500 focus:outline-none focus:bg-orange-500">
 							Add your website
 						</NuxtLink>
@@ -40,7 +46,8 @@
 			<div class="grid grid-cols-1 gap-8 mt-8 md:mt-16 md:grid-cols-2 xl:grid-cols-3">
 				<div>
 					<div class="relative">
-						<img class="object-cover object-center w-full h-64 rounded-lg lg:h-80"
+						<img
+class="object-cover object-center w-full h-64 rounded-lg lg:h-80"
 							src="https://images.unsplash.com/photo-1624996379697-f01d168b1a52?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
 							alt="">
 					</div>
@@ -54,7 +61,8 @@
 				</div>
 				<div>
 					<div class="relative">
-						<img class="object-cover object-center w-full h-64 rounded-lg lg:h-80"
+						<img
+class="object-cover object-center w-full h-64 rounded-lg lg:h-80"
 							src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
 							alt="">
 					</div>
@@ -69,7 +77,8 @@
 				</div>
 				<div>
 					<div class="relative">
-						<img class="object-cover object-center w-full h-64 rounded-lg lg:h-80"
+						<img
+class="object-cover object-center w-full h-64 rounded-lg lg:h-80"
 							src="https://images.unsplash.com/photo-1597534458220-9fb4969f2df5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80"
 							alt="">
 					</div>
@@ -128,7 +137,8 @@
 					your
 					company's
 					website ranking</p>
-				<NuxtLink to="/auth/login"
+				<NuxtLink
+to="/auth/login"
 					class="text-center font-bold w-full px-4 py-4 mt-6 text-sm tracking-wider text-white uppercase transition-colors duration-300 transform bg-orange-600 rounded-lg lg:w-auto hover:bg-orange-500 focus:outline-none focus:bg-orange-500">
 					Add your website
 				</NuxtLink>
@@ -151,7 +161,8 @@
 						</svg>
 					</a>
 
-					<a href="#" class="mx-2 text-gray-600 transition-colors duration-300 hover:text-blue-500"
+					<a
+href="#" class="mx-2 text-gray-600 transition-colors duration-300 hover:text-blue-500"
 						aria-label="Facebook">
 						<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path
