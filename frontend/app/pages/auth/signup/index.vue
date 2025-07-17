@@ -12,8 +12,7 @@ const signUpCredentialsValidation = computed(() => {
 	return {
 		username: signUpCredentials.username.length > 0,
 		email: signUpCredentials.email.length > 0 && emailRegex.test(signUpCredentials.email),
-		password: signUpCredentials.password.length >= 8
-			&& signUpCredentials.password === signUpCredentials.confirmPassword
+		password: signUpCredentials.password === signUpCredentials.confirmPassword
 	}
 })
 interface SignUpError {
