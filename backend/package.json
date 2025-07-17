@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node bin/server.js",
     "build": "node ace build",
-    "dev": "node ace serve --hmr",
+    "dev": "concurrently \"node ace serve --hmr\" \"npx maildev\"",
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -61,6 +61,7 @@
     "@adonisjs/redis": "^9.2.0",
     "@adonisjs/static": "^1.1.1",
     "@vinejs/vine": "^3.0.0",
+    "concurrently": "^9.2.0",
     "edge.js": "^6.2.1",
     "luxon": "^3.5.0",
     "pg": "^8.13.3",
