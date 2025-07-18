@@ -17,8 +17,8 @@ async function requestForgotPassword() {
 				life: 5000,
 				summary: 'Password Reset Request Sent',
 			});
-			setTimeout(async () => {
-				return await navigateTo('/auth/login', { external: true });
+			setTimeout(() => {
+				useRouter().push('/auth/login');
 			}, 5000)
 		}
 		successfullySent.value = true;
@@ -46,8 +46,7 @@ const successfullySent = ref(false);
 					<form>
 						<div>
 							<label class="block mb-2 text-sm text-gray-600">Email</label>
-							<input
-v-model="email" type="email" placeholder="Enter your email" required
+							<input v-model="email" type="email" placeholder="Enter your email" required
 								class="block w-full px-5 py-3 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-lg focus:border-orange-400 focus:ring-orange-400 focus:outline-none focus:ring focus:ring-opacity-40">
 						</div>
 						<button
