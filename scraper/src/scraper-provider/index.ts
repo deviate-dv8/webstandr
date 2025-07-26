@@ -40,7 +40,7 @@ export default class SERPScraper {
       // Store both browser and page instances
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
-      await this.search("minecraft", SearchEngine.DUCKDUCKGO);
+      await this.search("minecraft", SearchEngine.BING);
     } catch (error) {
       console.error("Error launching browser:", error);
     }
@@ -110,7 +110,19 @@ export default class SERPScraper {
         // All li inside ol#b_results is classified by b_algo
         // all li contains a.tilk tag with link
         // all li contains hw for title
-        // all datali contains p for description
+        // all datail contains p for description
+        const bResults = await page.$("ol#b_results");
+        if (!bResults) {
+          await page.screenshot({ path: "bing_search_error.png" });
+          throw new Error(
+            "Might be blocked by Bing, try using a different search engine.",
+          );
+        } else {
+          const b_no = await page.$("ol#b_results > li.b_no");
+          if (b_no) {
+            throw new Error("No results found in Bing search.");
+          }
+        }
         const resultElements = await page.$$("li.b_algo");
         let rank = 0;
         for (const element of resultElements) {
@@ -180,7 +192,12 @@ export default class SERPScraper {
           }
         }
       } else if (searchEngine === SearchEngine.YAHOO) {
-        // Yahoo search result preprocessing
+        // Yahoo search will always have ol#reg_searchCenterMiddle which contains all the result
+        // All li inside ol#reg_searchCenterMiddle is classified by b_algo
+        // all li contains a.tilk tag with link
+        // all li contains hw for title
+        // all datali contains p for description
+
         const resultElements = await page.$$("li.js-stream-content");
         let rank = 0;
         for (const element of resultElements) {
