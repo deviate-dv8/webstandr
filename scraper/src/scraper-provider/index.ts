@@ -40,10 +40,6 @@ export default class SERPScraper {
       // Store both browser and page instances
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
-      await this.search(
-        "thequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfox",
-        SearchEngine.YAHOO,
-      );
     } catch (error) {
       console.error("Error launching browser:", error);
     }
