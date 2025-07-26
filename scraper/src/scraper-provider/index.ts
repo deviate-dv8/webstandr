@@ -34,10 +34,10 @@ export default class SERPScraper {
           "--disable-setuid-sandbox",
           "--disable-blink-features=AutomationControlled",
         ],
-        disableXvfb: true,
+        disableXvfb: false,
         plugins: [],
       });
-      // Store both browser and page instances
+      // Store both browser
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
     } catch (error) {
@@ -53,7 +53,7 @@ export default class SERPScraper {
       console.error("Error closing browser:", error);
     }
   }
-  async preprocessPageResult(
+  static async preprocessPageResult(
     page: Page,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
   ) {
@@ -240,7 +240,7 @@ export default class SERPScraper {
       throw error;
     }
   }
-  async urlQueryProvider(
+  static async urlQueryProvider(
     query: string,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
   ): Promise<string> {
