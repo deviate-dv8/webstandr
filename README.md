@@ -1,3 +1,3 @@
 # webstandr
 
-a website seo rank checker with NuxtJS and AdonisJS
+a website SERP checker with NuxtJS and AdonisJS
