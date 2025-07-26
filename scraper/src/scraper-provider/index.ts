@@ -1,129 +1,228 @@
 import { connect } from "puppeteer-real-browser";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import AnonymizeUAPlugin from "puppeteer-extra-plugin-anonymize-ua";
+import { Browser, Page } from "puppeteer";
 
 const stealth = StealthPlugin();
 
 enum SearchEngine {
-  GOOGLE = "google.com",
-  BING = "bing.com",
-  DUCKDUCKGO = "duckduckgo.com",
-  YAHOO = "search.yahoo.com",
+  GOOGLE = "https://google.com",
+  BING = "https://bing.com",
+  DUCKDUCKGO = "https://duckduckgo.com",
+  YAHOO = "https://search.yahoo.com",
 }
 
 export default class SERPScraper {
-  private browser: any;
-  private page: any;
-
+  private browser: Browser | null = null;
   constructor() {
     this.launchBrowser();
   }
-
   async launchBrowser() {
     try {
       console.log("Launching browser...");
       const { browser, page } = await connect({
-        headless: false, // Keep this false for visible browser
+        headless: false,
         args: [
           "--no-sandbox",
           "--disable-setuid-sandbox",
-          "--disable-web-security",
-          "--disable-features=IsolateOrigins,site-per-process",
-          "--disable-dev-shm-usage",
-          "--disable-extensions",
-          "--disable-background-networking",
-          "--disable-background-timer-throttling",
-          "--disable-backgrounding-occluded-windows",
-          "--disable-breakpad",
-          "--disable-client-side-phishing-detection",
-          "--disable-component-update",
-          "--disable-default-apps",
-          "--disable-domain-reliability",
-          "--disable-hang-monitor",
-          "--disable-ipc-flooding-protection",
-          "--disable-popup-blocking",
-          // Browser visibility args
-          "--start-maximized",
-          "--window-position=0,0",
-          "--disable-backgrounding-occluded-windows",
-          "--disable-renderer-backgrounding",
-          "--no-first-run",
-          "--no-default-browser-check",
-          // Force display (useful for some environments)
-          "--display=:0",
+          "--disable-blink-features=AutomationControlled",
         ],
-        customConfig: {},
-        turnstile: true,
-        connectOption: {},
         disableXvfb: true,
-        ignoreAllFlags: false,
+        plugins: [],
       });
-
       // Store both browser and page instances
-      this.browser = browser;
-      this.page = page;
-
-      await this.page.setViewport({ width: 1280, height: 800 });
-      await this.page.goto("https://google.com", { waitUntil: "networkidle2" });
-      console.log("Browser launched successfully!");
-
-      // Take a screenshot to verify it's working
-      await this.page.screenshot({ path: "test-screenshot.png" });
-
-      await page.locator("textarea").fill("I am trying something new 55555555");
-      await page.keyboard.press("Enter");
-      await this.page.screenshot({ path: "test-screenshot2.png" });
-
-      // Fixed setTimeout usage
-      setTimeout(async () => {
-        await this.page.screenshot({ path: "test-screenshot3.png" });
-      }, 5000); // Wait for 5 seconds to see the result
+      this.browser = browser as unknown as Browser;
+      await page.setViewport({ width: 1280, height: 800 });
+      await this.search("example query", SearchEngine.DUCKDUCKGO);
     } catch (error) {
       console.error("Error launching browser:", error);
     }
   }
-
   async closeBrowser() {
     try {
-      if (this.browser) {
-        await this.browser.close();
-        this.browser = null;
-        this.page = null;
-        console.log("Browser closed successfully!");
-      }
+      await this.browser?.close();
+      this.browser = null;
+      console.log("Browser closed successfully!");
     } catch (error) {
       console.error("Error closing browser:", error);
     }
   }
+  async preprocessPageResult(
+    page: Page,
+    searchEngine: SearchEngine = SearchEngine.GOOGLE,
+  ) {
+    interface SearchResult {
+      domain: string;
+      title: string;
+      link: string;
+      description: string;
+      rank: number;
+    }
+    const results: SearchResult[] = [];
+    try {
+      if (searchEngine === SearchEngine.GOOGLE) {
+        // Google search result preprocessing
+        // Google search will always have div#rso which contains all the result
+        // All divs inside div#rso is ranked by data-rpos={rank}
+        // all data-rpos contains a tag with link
+        // all data-rpos contains h3 for title
+        // all data-rpos contains span for description
+        const rsoDiv = await page.$("#rso");
+        if (!rsoDiv) {
+          const searchDiv = await page.$("div#search");
+          if (searchDiv) {
+            throw new Error("No results found in Google search.");
+          } else {
+            await page.screenshot({ path: "google_search_error.png" });
+            throw new Error(
+              "Might be blocked by Google, try using a different search engine.",
+            );
+          }
+        }
+        const resultElements = await rsoDiv?.$$("div[data-rpos]");
+        let rank = 0;
+        for (const element of resultElements) {
+          const titleElement = await element.$("h3");
+          const linkElement = await element.$("a");
+          const descriptionElement = await element.$("span");
 
+          if (titleElement && linkElement && descriptionElement) {
+            const title = await titleElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            const link = await linkElement.evaluate(
+              (el) => el.getAttribute("href") || "",
+            );
+            const description = await descriptionElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            rank++;
+            const domain = new URL(link).hostname;
+            const data = { title, link, description, rank, domain };
+            results.push(data);
+          }
+        }
+      } else if (searchEngine === SearchEngine.BING) {
+        // Bing search result preprocessing
+        const resultElements = await page.$$("li.b_algo");
+        let rank = 0;
+        for (const element of resultElements) {
+          const titleElement = await element.$("h2");
+          const linkElement = await element.$("a");
+          const descriptionElement = await element.$("p");
+
+          if (titleElement && linkElement && descriptionElement) {
+            const title = await titleElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            const link = await linkElement.evaluate(
+              (el) => el.getAttribute("href") || "",
+            );
+            const description = await descriptionElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            rank++;
+            const domain = new URL(link).hostname;
+            const data = { title, link, description, rank, domain };
+            results.push(data);
+          }
+        }
+      } else if (searchEngine === SearchEngine.DUCKDUCKGO) {
+        // DuckDuckGo search result preprocessing
+        const resultElements = await page.$$("div.result");
+        let rank = 0;
+        for (const element of resultElements) {
+          const titleElement = await element.$("h2");
+          const linkElement = await element.$("a");
+          const descriptionElement = await element.$("a.result__snippet");
+
+          if (titleElement && linkElement && descriptionElement) {
+            const title = await titleElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            const link = await linkElement.evaluate(
+              (el) => el.getAttribute("href") || "",
+            );
+            const description = await descriptionElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            rank++;
+            const domain = new URL(link).hostname;
+            const data = { title, link, description, rank, domain };
+            results.push(data);
+          }
+        }
+      } else if (searchEngine === SearchEngine.YAHOO) {
+        // Yahoo search result preprocessing
+        const resultElements = await page.$$("li.js-stream-content");
+        let rank = 0;
+        for (const element of resultElements) {
+          const titleElement = await element.$("h3");
+          const linkElement = await element.$("a");
+          const descriptionElement = await element.$("p");
+
+          if (titleElement && linkElement && descriptionElement) {
+            const title = await titleElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            const link = await linkElement.evaluate(
+              (el) => el.getAttribute("href") || "",
+            );
+            const description = await descriptionElement.evaluate(
+              (el) => el.textContent?.trim() || "",
+            );
+            rank++;
+            const domain = new URL(link).hostname;
+            const data = { title, link, description, rank, domain };
+            results.push(data);
+          }
+        }
+      } else {
+        throw new Error("Unsupported search engine");
+      }
+      console.log(`Results from ${searchEngine}:`, results);
+      return results;
+    } catch (error) {
+      console.error("Error preprocessing page result:", error);
+      throw error;
+    }
+  }
+  async urlQueryProvider(
+    query: string,
+    searchEngine: SearchEngine = SearchEngine.GOOGLE,
+  ): Promise<string> {
+    switch (searchEngine) {
+      case SearchEngine.GOOGLE:
+        return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      case SearchEngine.BING:
+        return `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+      case SearchEngine.DUCKDUCKGO:
+        return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+      case SearchEngine.YAHOO:
+        return `https://search.yahoo.com/search?p=${encodeURIComponent(query)}`;
+      default:
+        throw new Error("Unsupported search engine");
+    }
+  }
   // Example search method
   async search(
     query: string,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
   ) {
-    if (!this.page) {
-      throw new Error("Browser not initialized. Call launchBrowser() first.");
+    if (!this.browser) {
+      await this.launchBrowser();
+      console.log("Browser not launched yet, launching now...");
     }
-
     try {
-      await this.page.goto(`https://${searchEngine}`);
-
-      // Wait for search input to be available
-      await this.page.waitForSelector('textarea[name="q"], input[name="q"]');
-
-      // Type the query
-      const searchInput =
-        (await this.page.$('textarea[name="q"]')) ||
-        (await this.page.$('input[name="q"]'));
-      await searchInput.type(query);
-
-      // Press Enter to search
-      await this.page.keyboard.press("Enter");
-
-      // Wait for results to load
-      await this.page.waitForNavigation({ waitUntil: "networkidle2" });
-
-      console.log(`Search completed for: ${query}`);
+      const page = await this.browser?.newPage();
+      if (!page) {
+        throw new Error("Failed to create a new page.");
+      }
+      const url = await this.urlQueryProvider(query, searchEngine);
+      await page.goto(url, { waitUntil: "networkidle2" });
+      const results = await this.preprocessPageResult(page, searchEngine);
+      await page.close();
+      return results;
     } catch (error) {
       console.error("Error during search:", error);
     }
