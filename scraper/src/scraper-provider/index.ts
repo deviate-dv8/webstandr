@@ -40,10 +40,7 @@ export default class SERPScraper {
       // Store both browser and page instances
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
-      await this.search(
-        "thequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfox",
-        SearchEngine.DUCKDUCKGO,
-      );
+      await this.search("minecraft", SearchEngine.DUCKDUCKGO);
     } catch (error) {
       console.error("Error launching browser:", error);
     }
@@ -87,7 +84,9 @@ export default class SERPScraper {
         for (const element of resultElements) {
           const titleElement = await element.$("h3");
           const linkElement = await element.$("a");
-          const descriptionElement = await element.$("span");
+          const descriptionElement = await element.$(
+            "div[style='-webkit-line-clamp:2']",
+          );
 
           if (titleElement && linkElement && descriptionElement) {
             const title = await titleElement.evaluate(
@@ -107,11 +106,16 @@ export default class SERPScraper {
         }
       } else if (searchEngine === SearchEngine.BING) {
         // Bing search result preprocessing
+        // Bing search will always have ol#b_results which contains all the result
+        // All li inside ol#b_results is classified by b_algo
+        // all li contains a.tilk tag with link
+        // all li contains hw for title
+        // all datali contains p for description
         const resultElements = await page.$$("li.b_algo");
         let rank = 0;
         for (const element of resultElements) {
           const titleElement = await element.$("h2");
-          const linkElement = await element.$("a");
+          const linkElement = await element.$("a.tilk");
           const descriptionElement = await element.$("p");
 
           if (titleElement && linkElement && descriptionElement) {
