@@ -140,7 +140,6 @@ export default class SERPScraper {
         const olElement = await page.$("ol.react-results--main");
         if (!olElement) {
           const noResultFound = (await page.$$("b")).length == 1;
-          console.log("noResultFound", noResultFound);
           if (noResultFound) {
             throw new Error("No results found in DuckDuckGo search.");
           } else {
