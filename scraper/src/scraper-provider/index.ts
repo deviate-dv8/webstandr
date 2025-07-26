@@ -40,7 +40,10 @@ export default class SERPScraper {
       // Store both browser and page instances
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
-      await this.search("minecraft", SearchEngine.BING);
+      await this.search(
+        "thequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfox",
+        SearchEngine.YAHOO,
+      );
     } catch (error) {
       console.error("Error launching browser:", error);
     }
@@ -192,18 +195,29 @@ export default class SERPScraper {
           }
         }
       } else if (searchEngine === SearchEngine.YAHOO) {
-        // Yahoo search will always have ol#reg_searchCenterMiddle which contains all the result
-        // All li inside ol#reg_searchCenterMiddle is classified by b_algo
-        // all li contains a.tilk tag with link
-        // all li contains hw for title
-        // all datali contains p for description
-
-        const resultElements = await page.$$("li.js-stream-content");
+        // Yahoo search will always have ol.searchCenterMiddle which contains all the result
+        // All li inside ol#reg_searchCenterMiddle contains all details
+        // all li contains div.compTitle > a:first-child  tag with link
+        // all li contains h3 for title
+        // all details contains div.compText for description
+        const regSearchCenterMiddle = await page.$("ol.searchCenterMiddle");
+        if (!regSearchCenterMiddle) {
+          const noResultFound = await page.$("ol.adultRegion");
+          if (noResultFound) {
+            throw new Error("No results found in Yahoo search.");
+          } else {
+            await page.screenshot({ path: "yahoo_search_error.png" });
+            throw new Error(
+              "Might be blocked by Yahoo, try using a different search engine.",
+            );
+          }
+        }
+        const resultElements = await regSearchCenterMiddle?.$$("li");
         let rank = 0;
         for (const element of resultElements) {
           const titleElement = await element.$("h3");
-          const linkElement = await element.$("a");
-          const descriptionElement = await element.$("p");
+          const linkElement = await element.$("div.compTitle > a:first-child");
+          const descriptionElement = await element.$("div.compText");
 
           if (titleElement && linkElement && descriptionElement) {
             const title = await titleElement.evaluate(
