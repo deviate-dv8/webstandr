@@ -12,6 +12,13 @@ enum SearchEngine {
   YAHOO = "https://search.yahoo.com",
 }
 
+interface SearchResult {
+  domain: string;
+  title: string;
+  link: string;
+  description: string;
+  rank: number;
+}
 export default class SERPScraper {
   private browser: Browser | null = null;
   constructor() {
@@ -33,7 +40,10 @@ export default class SERPScraper {
       // Store both browser and page instances
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
-      await this.search("example query", SearchEngine.DUCKDUCKGO);
+      await this.search(
+        "thequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfoxthequickbrownfox",
+        SearchEngine.DUCKDUCKGO,
+      );
     } catch (error) {
       console.error("Error launching browser:", error);
     }
@@ -51,13 +61,6 @@ export default class SERPScraper {
     page: Page,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
   ) {
-    interface SearchResult {
-      domain: string;
-      title: string;
-      link: string;
-      description: string;
-      rank: number;
-    }
     const results: SearchResult[] = [];
     try {
       if (searchEngine === SearchEngine.GOOGLE) {
@@ -129,13 +132,34 @@ export default class SERPScraper {
         }
       } else if (searchEngine === SearchEngine.DUCKDUCKGO) {
         // DuckDuckGo search result preprocessing
-        const resultElements = await page.$$("div.result");
+        // DuckDuckGo search will always have ol.react-results--main which contains all the result
+        // All li inside ol.react-results--main is classified by data-layout="organic"
+        // all li contains a tag with link classified by data-testid="result-extras-url-link"
+        // all li contains h2 for title
+        // all li contains a div[data-result="snippet"] span for description
+        const olElement = await page.$("ol.react-results--main");
+        if (!olElement) {
+          const noResultFound = (await page.$$("b")).length == 1;
+          console.log("noResultFound", noResultFound);
+          if (noResultFound) {
+            throw new Error("No results found in DuckDuckGo search.");
+          } else {
+            await page.screenshot({ path: "duckduckgo_search_error.png" });
+            throw new Error(
+              "Might be blocked by DuckDuckGo, try using a different search engine.",
+            );
+          }
+        }
+        const resultElements = await olElement?.$$("li[data-layout='organic']");
         let rank = 0;
-        for (const element of resultElements) {
+        for (const element of resultElements || []) {
           const titleElement = await element.$("h2");
-          const linkElement = await element.$("a");
-          const descriptionElement = await element.$("a.result__snippet");
-
+          const linkElement = await element.$(
+            "a[data-testid='result-extras-url-link']",
+          );
+          const descriptionElement = await element.$(
+            "div[data-result='snippet'] span",
+          );
           if (titleElement && linkElement && descriptionElement) {
             const title = await titleElement.evaluate(
               (el) => el.textContent?.trim() || "",
@@ -180,7 +204,6 @@ export default class SERPScraper {
       } else {
         throw new Error("Unsupported search engine");
       }
-      console.log(`Results from ${searchEngine}:`, results);
       return results;
     } catch (error) {
       console.error("Error preprocessing page result:", error);
@@ -208,10 +231,11 @@ export default class SERPScraper {
   async search(
     query: string,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
-  ) {
+  ): Promise<SearchResult[] | undefined> {
     if (!this.browser) {
       await this.launchBrowser();
       console.log("Browser not launched yet, launching now...");
+      return this.search(query, searchEngine);
     }
     try {
       const page = await this.browser?.newPage();
@@ -222,6 +246,7 @@ export default class SERPScraper {
       await page.goto(url, { waitUntil: "networkidle2" });
       const results = await this.preprocessPageResult(page, searchEngine);
       await page.close();
+      console.log("results:", results);
       return results;
     } catch (error) {
       console.error("Error during search:", error);
