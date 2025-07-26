@@ -2,13 +2,14 @@
 definePageMeta({
 	middleware: ['sidebase-auth']
 })
-const websiteColumns = ['name', 'url', 'type', 'provider', 'ranking']
+const websiteColumns = ['name', 'url', 'type', 'provider', 'frequency', 'ranking']
 const websitesData = reactive([
 	{
 		name: 'Google',
 		url: 'https://www.google.com',
 		type: 'Competitor',
 		provider: 'Google',
+		frequency: 10,
 		ranking: 1
 	},
 	{
@@ -16,6 +17,7 @@ const websitesData = reactive([
 		url: 'https://www.bing.com',
 		type: 'Competitor',
 		provider: 'Bing',
+		frequency: 9,
 		ranking: 2
 	},
 	{
@@ -23,6 +25,7 @@ const websitesData = reactive([
 		url: 'https://www.yahoo.com',
 		type: 'Competitor',
 		provider: 'Bing',
+		frequency: 4,
 		ranking: 3
 	},
 	{
@@ -30,6 +33,7 @@ const websitesData = reactive([
 		url: 'https://www.mywebsite.com',
 		type: 'Owner',
 		provider: 'Google',
+		frequency: 6,
 		ranking: 4
 	},
 	{
@@ -37,6 +41,7 @@ const websitesData = reactive([
 		url: 'https://www.duckduckgo.com',
 		type: 'Competitor',
 		provider: 'Google',
+		frequency: 5,
 		ranking: 5
 	}
 ])
@@ -84,7 +89,7 @@ const websitesData = reactive([
 							<Icon name="mdi:numeric-1-box" class="text-4xl" />
 						</div>
 					</div>
-
+					<div class="p-4"/>
 					<div class="p-4 rounded-xl border mt-8 border-gray-300">
 						<DataTable :value="websitesData">
 							<template #header>
