@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import type { ChartData, ChartConfiguration } from "chart.js"
 definePageMeta({
 	middleware: ['sidebase-auth']
 })
-const websiteColumns = ['name', 'url', 'type', 'provider', 'frequency', 'ranking']
+const websiteColumns = ['name', 'url', 'type', 'provider', 'prompt', 'frequency', 'ranking']
 const websitesData = reactive([
 	{
 		name: 'Google',
 		url: 'https://www.google.com',
-		prompt: "Google Search",
+		prompt: "Google Search the quick brown fox jumps over the lazy dog",
 		type: 'Competitor',
 		provider: 'Google',
 		frequency: 10,
@@ -50,10 +51,23 @@ const websitesData = reactive([
 		ranking: 5
 	}
 ])
+
+const sampleData = [1, 2, 3, 4, 5, 8, 9]
+const months = Array.from({ length: sampleData.length }, (_, i) => new Date(0, i).toLocaleString('en-US', { month: 'short' }))
+const chartData: ChartData = {
+	labels: months,
+	datasets: [
+		{
+			label: 'My Website',
+			data: sampleData,
+			borderColor: '#4F46E5',
+		},
+	]
+}
 </script>
 <template>
 	<main class="relative min-h-screen flex flex-col">
-		<DashboardAppHeader class="sticky top-0" />
+		<DashboardAppHeader class="sticky top-0 z-50" />
 		<div class="flex-1 flex h-full">
 			<DashboardAppNav />
 			<section class="w-full ml-[256px]">
@@ -70,7 +84,7 @@ const websitesData = reactive([
 
 						<div class="rounded-2xl px-4 py-6 flex justify-between border border-gray-300 ">
 							<div class="">
-								<p class="text-xl font-medium">Top Website</p>
+								<p class="text-xl font-medium">My Top Website</p>
 								<p class="text-3xl font-bold mt-8">Minecraft.com</p>
 								<p class="text-sm text-gray-500"><span class="text-green-600 font-bold"># 1-5</span> Rank since last
 									week
@@ -94,7 +108,11 @@ const websitesData = reactive([
 							<Icon name="mdi:numeric-1-box" class="text-4xl" />
 						</div>
 					</div>
-					<div class="p-4" />
+					<div class="p-4 flex items-center justify-center">
+						<div class="w-[750px]">
+							<Chart type="line" :data="chartData" class="w-full border border-gray-300 rounded-xl p-4" />
+						</div>
+					</div>
 					<div class="p-4 rounded-xl border mt-8 border-gray-300">
 						<DataTable :value="websitesData">
 							<template #header>
