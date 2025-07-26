@@ -7,6 +7,7 @@ const websitesData = reactive([
 	{
 		name: 'Google',
 		url: 'https://www.google.com',
+		prompt: "Google Search",
 		type: 'Competitor',
 		provider: 'Google',
 		frequency: 10,
@@ -15,6 +16,7 @@ const websitesData = reactive([
 	{
 		name: 'Bing',
 		url: 'https://www.bing.com',
+		prompt: "Bing Search",
 		type: 'Competitor',
 		provider: 'Bing',
 		frequency: 9,
@@ -23,6 +25,7 @@ const websitesData = reactive([
 	{
 		name: 'Yahoo',
 		url: 'https://www.yahoo.com',
+		prompt: "Yahoo Search",
 		type: 'Competitor',
 		provider: 'Bing',
 		frequency: 4,
@@ -31,6 +34,7 @@ const websitesData = reactive([
 	{
 		name: 'MyWebsite',
 		url: 'https://www.mywebsite.com',
+		prompt: "My Website",
 		type: 'Owner',
 		provider: 'Google',
 		frequency: 6,
@@ -39,6 +43,7 @@ const websitesData = reactive([
 	{
 		name: 'DuckDuckGo',
 		url: 'https://www.duckduckgo.com',
+		prompt: "DuckDuckGo Search",
 		type: 'Competitor',
 		provider: 'Google',
 		frequency: 5,
@@ -89,7 +94,7 @@ const websitesData = reactive([
 							<Icon name="mdi:numeric-1-box" class="text-4xl" />
 						</div>
 					</div>
-					<div class="p-4"/>
+					<div class="p-4" />
 					<div class="p-4 rounded-xl border mt-8 border-gray-300">
 						<DataTable :value="websitesData">
 							<template #header>
