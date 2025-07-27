@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api", routes);
 app.listen(PORT, () => {
-  scraper = new SERPScraper();
+  scraper = new SERPScraper(parseInt(process.env.TAB_LIMIT as string) || 1000);
   console.log("⚡️[server]: Server is running at http://localhost:" + PORT);
 });
 
