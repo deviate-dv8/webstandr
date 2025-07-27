@@ -16,7 +16,8 @@
     "puppeteer-extra-plugin-anonymize-ua": "^2.4.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "puppeteer-real-browser": "^1.4.3",
-    "user-agents": "^1.1.612"
+    "user-agents": "^1.1.612",
+    "zod": "^4.0.10"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
