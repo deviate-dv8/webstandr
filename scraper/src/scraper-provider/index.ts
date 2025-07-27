@@ -43,7 +43,7 @@ export default class SERPScraper {
   private processingQueue: boolean = false;
   private tabIdleTimeout: number = 300000; // 5 minutes
 
-  constructor(maxTabs: number = 25, maxQueueSize: number = 1000) {
+  constructor(maxTabs: number = 1000, maxQueueSize: number = 1000) {
     this.maxTabs = maxTabs;
     this.maxQueueSize = maxQueueSize;
     this.launchBrowser();
