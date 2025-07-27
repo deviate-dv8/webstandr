@@ -19,11 +19,36 @@ interface SearchResult {
   description: string;
   rank: number;
 }
+
+interface SearchTask {
+  query: string;
+  searchEngine: SearchEngine;
+  resolve: (results: SearchResult[]) => void;
+  reject: (error: Error) => void;
+  id: string;
+}
+
+interface TabPool {
+  page: Page;
+  busy: boolean;
+  lastUsed: number;
+}
+
 export default class SERPScraper {
   private browser: Browser | null = null;
-  constructor() {
+  private tabPool: TabPool[] = [];
+  private taskQueue: SearchTask[] = [];
+  private maxTabs: number;
+  private maxQueueSize: number;
+  private processingQueue: boolean = false;
+  private tabIdleTimeout: number = 300000; // 5 minutes
+
+  constructor(maxTabs: number = 25, maxQueueSize: number = 1000) {
+    this.maxTabs = maxTabs;
+    this.maxQueueSize = maxQueueSize;
     this.launchBrowser();
   }
+
   async launchBrowser() {
     try {
       console.log("Launching browser...");
@@ -34,18 +59,207 @@ export default class SERPScraper {
           "--disable-setuid-sandbox",
           "--disable-blink-features=AutomationControlled",
         ],
-        disableXvfb: false,
+        disableXvfb: true,
         plugins: [],
       });
-      // Store both browser
+
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
+
+      // Initialize the first tab in the pool
+      this.tabPool.push({
+        page: page as unknown as Page,
+        busy: false,
+        lastUsed: Date.now(),
+      });
+
+      // Start idle tab cleanup
+      this.startIdleTabCleanup();
     } catch (error) {
       console.error("Error launching browser:", error);
     }
   }
+
+  private startIdleTabCleanup() {
+    setInterval(async () => {
+      const now = Date.now();
+      const idleTabs = this.tabPool.filter(
+        (tab) => !tab.busy && now - tab.lastUsed > this.tabIdleTimeout,
+      );
+
+      // Keep at least 1 tab, close excess idle tabs
+      if (this.tabPool.length > 1 && idleTabs.length > 0) {
+        const tabsToClose = idleTabs.slice(0, idleTabs.length - 1);
+
+        for (const tab of tabsToClose) {
+          try {
+            await tab.page.close();
+            this.tabPool = this.tabPool.filter((t) => t !== tab);
+            console.log(`Closed idle tab. Pool size: ${this.tabPool.length}`);
+          } catch (error) {
+            console.error("Error closing idle tab:", error);
+          }
+        }
+      }
+    }, 60000); // Check every minute
+  }
+
+  private async getAvailableTab(): Promise<TabPool> {
+    // Try to find an available tab
+    let availableTab = this.tabPool.find((tab) => !tab.busy);
+
+    if (!availableTab && this.tabPool.length < this.maxTabs) {
+      // Create new tab if under limit
+      try {
+        const page = await this.browser!.newPage();
+        await page.setViewport({ width: 1280, height: 800 });
+
+        const newTab: TabPool = {
+          page,
+          busy: false,
+          lastUsed: Date.now(),
+        };
+
+        this.tabPool.push(newTab);
+        availableTab = newTab;
+        console.log(`Created new tab. Pool size: ${this.tabPool.length}`);
+      } catch (error) {
+        console.error("Error creating new tab:", error);
+        throw error;
+      }
+    }
+
+    if (!availableTab) {
+      // Wait for a tab to become available
+      return new Promise((resolve) => {
+        const checkAvailability = () => {
+          const tab = this.tabPool.find((t) => !t.busy);
+          if (tab) {
+            resolve(tab);
+          } else {
+            setTimeout(checkAvailability, 100);
+          }
+        };
+        checkAvailability();
+      });
+    }
+
+    return availableTab;
+  }
+
+  private async processQueue() {
+    if (this.processingQueue || this.taskQueue.length === 0) {
+      return;
+    }
+
+    this.processingQueue = true;
+
+    while (this.taskQueue.length > 0) {
+      const task = this.taskQueue.shift()!;
+
+      try {
+        const tab = await this.getAvailableTab();
+        tab.busy = true;
+        tab.lastUsed = Date.now();
+
+        console.log(
+          `Processing task ${task.id}. Queue length: ${this.taskQueue.length}`,
+        );
+
+        // Process the search in background
+        this.executeSearch(tab, task).finally(() => {
+          tab.busy = false;
+          tab.lastUsed = Date.now();
+        });
+      } catch (error) {
+        task.reject(error as Error);
+      }
+    }
+
+    this.processingQueue = false;
+  }
+
+  private async executeSearch(tab: TabPool, task: SearchTask) {
+    try {
+      const url = await this.urlQueryProvider(task.query, task.searchEngine);
+      await tab.page.goto(url, { waitUntil: "load" });
+      const results = await this.preprocessPageResult(
+        tab.page,
+        task.searchEngine,
+      );
+      task.resolve(results);
+    } catch (error) {
+      task.reject(error as Error);
+    }
+  }
+
+  // Public search method - adds to queue
+  async search(
+    query: string,
+    searchEngine: SearchEngine = SearchEngine.GOOGLE,
+  ): Promise<SearchResult[]> {
+    if (!this.browser) {
+      await this.launchBrowser();
+      return this.search(query, searchEngine);
+    }
+
+    if (this.taskQueue.length >= this.maxQueueSize) {
+      throw new Error(
+        `Queue is full. Maximum queue size: ${this.maxQueueSize}`,
+      );
+    }
+
+    return new Promise<SearchResult[]>((resolve, reject) => {
+      const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      const task: SearchTask = {
+        query,
+        searchEngine,
+        resolve,
+        reject,
+        id: taskId,
+      };
+
+      this.taskQueue.push(task);
+      console.log(
+        `Added task ${taskId} to queue. Queue length: ${this.taskQueue.length}`,
+      );
+
+      // Start processing if not already processing
+      this.processQueue();
+    });
+  }
+
+  // Get queue and pool status
+  getStatus() {
+    return {
+      queueLength: this.taskQueue.length,
+      totalTabs: this.tabPool.length,
+      busyTabs: this.tabPool.filter((tab) => tab.busy).length,
+      availableTabs: this.tabPool.filter((tab) => !tab.busy).length,
+      maxTabs: this.maxTabs,
+      maxQueueSize: this.maxQueueSize,
+    };
+  }
+
   async closeBrowser() {
     try {
+      // Clear the queue
+      this.taskQueue.forEach((task) => {
+        task.reject(new Error("Browser is closing"));
+      });
+      this.taskQueue = [];
+
+      // Close all tabs
+      for (const tab of this.tabPool) {
+        try {
+          await tab.page.close();
+        } catch (error) {
+          console.error("Error closing tab:", error);
+        }
+      }
+      this.tabPool = [];
+
       await this.browser?.close();
       this.browser = null;
       console.log("Browser closed successfully!");
@@ -53,6 +267,7 @@ export default class SERPScraper {
       console.error("Error closing browser:", error);
     }
   }
+
   private async preprocessPageResult(
     page: Page,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
@@ -73,7 +288,6 @@ export default class SERPScraper {
           throw new Error("Unsupported search engine");
       }
     } catch (error) {
-      await page.close();
       console.error("Error preprocessing page result:", error);
       throw error;
     }
@@ -98,7 +312,6 @@ export default class SERPScraper {
       }
     }
 
-    // Extract all data in a single page.evaluate call
     return await page.evaluate(() => {
       const results: SearchResult[] = [];
       const resultElements = document.querySelectorAll("#rso div[data-rpos]");
@@ -190,7 +403,7 @@ export default class SERPScraper {
   private async processDuckDuckGoResults(page: Page): Promise<SearchResult[]> {
     const olElement = await page.$("ol.react-results--main");
     if (!olElement) {
-      const boldElements = await page.$("b");
+      const boldElements = await page.$$("b");
       if (boldElements.length === 1) {
         throw new Error("No results found in DuckDuckGo search.");
       } else {
@@ -296,6 +509,7 @@ export default class SERPScraper {
       return results;
     });
   }
+
   private async urlQueryProvider(
     query: string,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
@@ -311,38 +525,6 @@ export default class SERPScraper {
         return `https://search.yahoo.com/search?p=${encodeURIComponent(query)}`;
       default:
         throw new Error("Unsupported search engine");
-    }
-  }
-  // Example search method
-  async search(
-    query: string,
-    searchEngine: SearchEngine = SearchEngine.GOOGLE,
-  ): Promise<SearchResult[] | undefined> {
-    if (!this.browser) {
-      await this.launchBrowser();
-      console.log("Browser not launched yet, launching now...");
-      return this.search(query, searchEngine);
-    }
-    let page: Page | null = null;
-    try {
-      page = await this.browser?.newPage();
-      if (!page) {
-        throw new Error("Failed to create a new page.");
-      }
-      const url = await this.urlQueryProvider(query, searchEngine);
-      await page.goto(url, { waitUntil: "load" });
-      const results = await this.preprocessPageResult(page, searchEngine);
-      if (!page.isClosed()) {
-        await page.close();
-      }
-      console.log("results:", results);
-      return results;
-    } catch (error) {
-      if (!page?.isClosed()) {
-        await page?.close();
-      }
-      console.error("Error during search:", error);
-      throw error;
     }
   }
 }
