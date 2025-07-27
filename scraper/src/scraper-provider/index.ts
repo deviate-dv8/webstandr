@@ -26,6 +26,8 @@ interface SearchTask {
   resolve: (results: SearchResult[]) => void;
   reject: (error: Error) => void;
   id: string;
+  abortController: AbortController;
+  cancelled: boolean;
 }
 
 interface TabPool {
@@ -41,7 +43,7 @@ export default class SERPScraper {
   private maxTabs: number;
   private maxQueueSize: number;
   private processingQueue: boolean = false;
-  private tabIdleTimeout: number = 300000; // 5 minutes
+  private tabIdleTimeout: number = 5000;
 
   constructor(maxTabs: number = 1000, maxQueueSize: number = 1000) {
     this.maxTabs = maxTabs;
@@ -155,10 +157,38 @@ export default class SERPScraper {
     this.processingQueue = true;
 
     while (this.taskQueue.length > 0) {
+      // Remove cancelled tasks from queue
+      const validTasks = this.taskQueue.filter((task) => !task.cancelled);
+      const cancelledTasks = this.taskQueue.filter((task) => task.cancelled);
+
+      // Clean up cancelled tasks
+      cancelledTasks.forEach((task) => {
+        task.reject(new Error("Request cancelled"));
+      });
+
+      this.taskQueue = validTasks;
+
+      if (this.taskQueue.length === 0) {
+        break;
+      }
+
       const task = this.taskQueue.shift()!;
+
+      // Double-check if task was cancelled while waiting
+      if (task.cancelled) {
+        task.reject(new Error("Request cancelled"));
+        continue;
+      }
 
       try {
         const tab = await this.getAvailableTab();
+
+        // Check again after getting tab (in case cancelled while waiting)
+        if (task.cancelled) {
+          task.reject(new Error("Request cancelled"));
+          continue;
+        }
+
         tab.busy = true;
         tab.lastUsed = Date.now();
 
@@ -172,7 +202,9 @@ export default class SERPScraper {
           tab.lastUsed = Date.now();
         });
       } catch (error) {
-        task.reject(error as Error);
+        if (!task.cancelled) {
+          task.reject(error as Error);
+        }
       }
     }
 
@@ -181,23 +213,56 @@ export default class SERPScraper {
 
   private async executeSearch(tab: TabPool, task: SearchTask) {
     try {
+      // Check if cancelled before starting
+      if (task.cancelled || task.abortController.signal.aborted) {
+        throw new Error("Request cancelled");
+      }
+
       const url = await this.urlQueryProvider(task.query, task.searchEngine);
-      await tab.page.goto(url, { waitUntil: "load" });
+
+      // Check if cancelled before navigation
+      if (task.cancelled || task.abortController.signal.aborted) {
+        throw new Error("Request cancelled");
+      }
+
+      // Navigate with timeout and abort signal awareness
+      await Promise.race([
+        tab.page.goto(url, { waitUntil: "load" }),
+        new Promise((_, reject) => {
+          task.abortController.signal.addEventListener("abort", () => {
+            reject(new Error("Request cancelled"));
+          });
+        }),
+      ]);
+
+      // Check if cancelled after navigation
+      if (task.cancelled || task.abortController.signal.aborted) {
+        throw new Error("Request cancelled");
+      }
+
       const results = await this.preprocessPageResult(
         tab.page,
         task.searchEngine,
       );
+
+      // Final check before resolving
+      if (task.cancelled || task.abortController.signal.aborted) {
+        throw new Error("Request cancelled");
+      }
+
       task.resolve(results);
     } catch (error) {
-      task.reject(error as Error);
+      if (!task.cancelled) {
+        task.reject(error as Error);
+      }
     }
   }
 
-  // Public search method - adds to queue
+  // Public search method - adds to queue and returns cancellable promise
   async search(
     query: string,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
-  ): Promise<SearchResult[]> {
+  ): Promise<{ promise: Promise<SearchResult[]>; cancel: () => void }> {
     if (!this.browser) {
       await this.launchBrowser();
       return this.search(query, searchEngine);
@@ -209,15 +274,18 @@ export default class SERPScraper {
       );
     }
 
-    return new Promise<SearchResult[]>((resolve, reject) => {
-      const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const abortController = new AbortController();
+    const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+    const searchPromise = new Promise<SearchResult[]>((resolve, reject) => {
       const task: SearchTask = {
         query,
         searchEngine,
         resolve,
         reject,
         id: taskId,
+        abortController,
+        cancelled: false,
       };
 
       this.taskQueue.push(task);
@@ -228,12 +296,71 @@ export default class SERPScraper {
       // Start processing if not already processing
       this.processQueue();
     });
+
+    const cancel = () => {
+      // Find and mark task as cancelled
+      const task = this.taskQueue.find((t) => t.id === taskId);
+      if (task) {
+        task.cancelled = true;
+        task.abortController.abort();
+        console.log(`Cancelled task ${taskId}`);
+      }
+    };
+
+    return {
+      promise: searchPromise,
+      cancel,
+    };
   }
 
+  // Convenience method for backward compatibility
+  async searchSimple(
+    query: string,
+    searchEngine: SearchEngine = SearchEngine.GOOGLE,
+  ): Promise<SearchResult[]> {
+    const { promise } = await this.search(query, searchEngine);
+    return promise;
+  }
+
+  // Cancel all pending requests
+  cancelAllRequests() {
+    const cancelledCount = this.taskQueue.length;
+    this.taskQueue.forEach((task) => {
+      task.cancelled = true;
+      task.abortController.abort();
+      task.reject(new Error("All requests cancelled"));
+    });
+    this.taskQueue = [];
+    console.log(`Cancelled ${cancelledCount} pending requests`);
+    return cancelledCount;
+  }
+
+  // Cancel requests by search engine
+  cancelRequestsByEngine(searchEngine: SearchEngine) {
+    const tasksToCancel = this.taskQueue.filter(
+      (task) => task.searchEngine === searchEngine,
+    );
+    tasksToCancel.forEach((task) => {
+      task.cancelled = true;
+      task.abortController.abort();
+      task.reject(new Error(`Requests for ${searchEngine} cancelled`));
+    });
+    this.taskQueue = this.taskQueue.filter(
+      (task) => task.searchEngine !== searchEngine,
+    );
+    console.log(
+      `Cancelled ${tasksToCancel.length} requests for ${searchEngine}`,
+    );
+    return tasksToCancel.length;
+  }
   // Get queue and pool status
   getStatus() {
+    const activeTasks = this.taskQueue.filter((task) => !task.cancelled);
+    const cancelledTasks = this.taskQueue.filter((task) => task.cancelled);
+
     return {
-      queueLength: this.taskQueue.length,
+      queueLength: activeTasks.length,
+      cancelledInQueue: cancelledTasks.length,
       totalTabs: this.tabPool.length,
       busyTabs: this.tabPool.filter((tab) => tab.busy).length,
       availableTabs: this.tabPool.filter((tab) => !tab.busy).length,
@@ -244,16 +371,18 @@ export default class SERPScraper {
 
   async closeBrowser() {
     try {
-      // Clear the queue
-      this.taskQueue.forEach((task) => {
-        task.reject(new Error("Browser is closing"));
-      });
-      this.taskQueue = [];
+      // Cancel and clear the queue
+      const cancelledCount = this.cancelAllRequests();
+      console.log(
+        `Cancelled ${cancelledCount} pending requests during browser close`,
+      );
 
       // Close all tabs
       for (const tab of this.tabPool) {
         try {
-          await tab.page.close();
+          if (!tab.page.isClosed()) {
+            await tab.page.close();
+          }
         } catch (error) {
           console.error("Error closing tab:", error);
         }
