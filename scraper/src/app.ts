@@ -1,21 +1,20 @@
 import express from "express";
-import whetherController from "./controllers/whether-controller";
 import SERPScraper from "./scraper-provider";
+import routes from "./routes";
 // Initialize
 const app = express();
-let scraper: SERPScraper | null = null;
+export let scraper: SERPScraper | null = null;
 const PORT = 3000;
 
 // Middleware
 app.use(express.static("public"));
 app.use(express.json());
-
-// Controllers
-app.use("/weather", whetherController);
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.redirect("/weather");
+  res.json({ message: "Welcome to SERP Scraper API" });
 });
+app.use("/api", routes);
 app.listen(PORT, () => {
   scraper = new SERPScraper();
   console.log("⚡️[server]: Server is running at http://localhost:" + PORT);

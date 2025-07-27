@@ -5,7 +5,7 @@ import { Browser, Page } from "puppeteer";
 
 const stealth = StealthPlugin();
 
-enum SearchEngine {
+export enum SearchEngine {
   GOOGLE = "https://google.com",
   BING = "https://bing.com",
   DUCKDUCKGO = "https://duckduckgo.com",
@@ -34,7 +34,7 @@ export default class SERPScraper {
           "--disable-setuid-sandbox",
           "--disable-blink-features=AutomationControlled",
         ],
-        disableXvfb: false,
+        disableXvfb: true,
         plugins: [],
       });
       // Store both browser
@@ -53,7 +53,7 @@ export default class SERPScraper {
       console.error("Error closing browser:", error);
     }
   }
-  static async preprocessPageResult(
+  private async preprocessPageResult(
     page: Page,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
   ) {
@@ -240,7 +240,7 @@ export default class SERPScraper {
       throw error;
     }
   }
-  static async urlQueryProvider(
+  private async urlQueryProvider(
     query: string,
     searchEngine: SearchEngine = SearchEngine.GOOGLE,
   ): Promise<string> {
@@ -280,6 +280,7 @@ export default class SERPScraper {
       return results;
     } catch (error) {
       console.error("Error during search:", error);
+      throw error;
     }
   }
 }
