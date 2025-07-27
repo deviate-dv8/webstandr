@@ -102,8 +102,9 @@ export default class SERPScraper {
     return await page.evaluate(() => {
       const results: SearchResult[] = [];
       const resultElements = document.querySelectorAll("#rso div[data-rpos]");
+      let rank = 1;
 
-      resultElements.forEach((element, index) => {
+      resultElements.forEach((element) => {
         const titleElement = element.querySelector("h3");
         const linkElement = element.querySelector("a");
         const descriptionElement = element.querySelector(
@@ -122,11 +123,11 @@ export default class SERPScraper {
                 title,
                 link,
                 description,
-                rank: index + 1,
+                rank: rank++,
                 domain,
               });
             } catch (e) {
-              // Skip invalid URLs
+              // Skip invalid URLs but don't increment rank
             }
           }
         }
@@ -153,8 +154,9 @@ export default class SERPScraper {
     return await page.evaluate(() => {
       const results: SearchResult[] = [];
       const resultElements = document.querySelectorAll("li.b_algo");
+      let rank = 1;
 
-      resultElements.forEach((element, index) => {
+      resultElements.forEach((element) => {
         const titleElement = element.querySelector("h2");
         const linkElement = element.querySelector("a.tilk");
         const descriptionElement = element.querySelector("p");
@@ -171,11 +173,11 @@ export default class SERPScraper {
                 title,
                 link,
                 description,
-                rank: index + 1,
+                rank: rank++,
                 domain,
               });
             } catch (e) {
-              // Skip invalid URLs
+              // Skip invalid URLs but don't increment rank
             }
           }
         }
@@ -188,7 +190,7 @@ export default class SERPScraper {
   private async processDuckDuckGoResults(page: Page): Promise<SearchResult[]> {
     const olElement = await page.$("ol.react-results--main");
     if (!olElement) {
-      const boldElements = await page.$$("b");
+      const boldElements = await page.$("b");
       if (boldElements.length === 1) {
         throw new Error("No results found in DuckDuckGo search.");
       } else {
@@ -204,8 +206,9 @@ export default class SERPScraper {
       const resultElements = document.querySelectorAll(
         "ol.react-results--main li[data-layout='organic']",
       );
+      let rank = 1;
 
-      resultElements.forEach((element, index) => {
+      resultElements.forEach((element) => {
         const titleElement = element.querySelector("h2");
         const linkElement = element.querySelector(
           "a[data-testid='result-extras-url-link']",
@@ -226,11 +229,11 @@ export default class SERPScraper {
                 title,
                 link,
                 description,
-                rank: index + 1,
+                rank: rank++,
                 domain,
               });
             } catch (e) {
-              // Skip invalid URLs
+              // Skip invalid URLs but don't increment rank
             }
           }
         }
@@ -259,8 +262,9 @@ export default class SERPScraper {
       const resultElements = document.querySelectorAll(
         "ol.searchCenterMiddle li",
       );
+      let rank = 1;
 
-      resultElements.forEach((element, index) => {
+      resultElements.forEach((element) => {
         const titleElement = element.querySelector("h3");
         const linkElement = element.querySelector(
           "div.compTitle > a:first-child",
@@ -279,11 +283,11 @@ export default class SERPScraper {
                 title,
                 link,
                 description,
-                rank: index + 1,
+                rank: rank++,
                 domain,
               });
             } catch (e) {
-              // Skip invalid URLs
+              // Skip invalid URLs but don't increment rank
             }
           }
         }
