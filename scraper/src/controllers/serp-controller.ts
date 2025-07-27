@@ -43,6 +43,11 @@ async function search(req: Request, res: Response) {
   }
 
   const { query, provider } = parsed.data;
+  const requestId = `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+  console.log(
+    `[${requestId}] Starting search for query: "${query}" with provider: ${provider}`,
+  );
 
   try {
     // Get search engine enum
@@ -51,34 +56,58 @@ async function search(req: Request, res: Response) {
     // Start cancellable search
     const { promise, cancel } = await scraper.search(query, searchEngine);
 
+    let isCancelled = false;
+
     // Setup automatic cancellation on client disconnect
-    const handleCancel = () => {
-      console.log(
-        `Client disconnected, cancelling search for query: "${query}"`,
-      );
-      cancel();
+    const handleCancel = (event: string) => {
+      if (!isCancelled) {
+        isCancelled = true;
+        console.log(
+          `[${requestId}] Client ${event}, cancelling search for query: "${query}"`,
+        );
+        cancel();
+      }
     };
 
-    // Listen for client disconnect events
-    req.on("close", handleCancel);
-    req.on("aborted", handleCancel);
+    // Listen for ALL possible client disconnect events
+    req.on("close", () => handleCancel("disconnected"));
+    req.on("aborted", () => handleCancel("aborted"));
+    req.on("error", () => handleCancel("errored"));
+
+    // Also monitor if response is finished/destroyed
+    res.on("close", () => handleCancel("response closed"));
+    res.on("finish", () =>
+      console.log(`[${requestId}] Response finished normally`),
+    );
+
+    console.log(
+      `[${requestId}] Request events attached, waiting for results...`,
+    );
 
     // Wait for search results
     const results = await promise;
 
-    return res.json({
-      success: true,
-      results,
-    });
+    if (!isCancelled) {
+      console.log(
+        `[${requestId}] Search completed successfully with ${results.length} results`,
+      );
+      return res.json({
+        success: true,
+        results,
+        requestId,
+      });
+    }
   } catch (error) {
-    console.error("Search error:", error);
+    console.error(`[${requestId}] Search error:`, error);
 
     // Handle different error types
     if (error instanceof Error) {
       if (error.message === "Request cancelled") {
+        console.log(`[${requestId}] Request was cancelled`);
         return res.status(499).json({
           success: false,
           message: "Request cancelled",
+          requestId,
         });
       }
 
@@ -86,6 +115,7 @@ async function search(req: Request, res: Response) {
         return res.status(400).json({
           success: false,
           message: "Invalid provider",
+          requestId,
         });
       }
     }
@@ -94,6 +124,7 @@ async function search(req: Request, res: Response) {
       success: false,
       message: "Search failed",
       error: error instanceof Error ? error.message : String(error),
+      requestId,
     });
   }
 }
