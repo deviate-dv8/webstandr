@@ -2,6 +2,7 @@ import { Request, Response, Router } from "express";
 import z from "zod";
 import { scraper } from "../";
 import { SearchEngine } from "../scraper-provider";
+
 const SearchSchema = z.object({
   query: z.string().min(1, "Query must not be empty"),
   provider: z.enum(["google", "bing", "yahoo", "duckduckgo"], {
@@ -9,10 +10,25 @@ const SearchSchema = z.object({
   }),
 });
 
-// Store active requests for cancellation tracking
-const activeRequests = new Map<string, () => void>();
+// Helper function to map provider string to enum
+function getSearchEngine(provider: string): SearchEngine {
+  switch (provider) {
+    case "google":
+      return SearchEngine.GOOGLE;
+    case "bing":
+      return SearchEngine.BING;
+    case "duckduckgo":
+      return SearchEngine.DUCKDUCKGO;
+    case "yahoo":
+      return SearchEngine.YAHOO;
+    default:
+      throw new Error("Invalid provider");
+  }
+}
 
+// Main search function with automatic cancellation
 async function search(req: Request, res: Response) {
+  // Validate request
   const parsed = SearchSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({
@@ -21,185 +37,70 @@ async function search(req: Request, res: Response) {
     });
   }
 
-  const { query, provider } = parsed.data;
+  // Check scraper availability
   if (!scraper) {
     return res.status(500).json({ message: "Scraper not initialized" });
   }
 
-  // Generate unique request ID
-  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const { query, provider } = parsed.data;
 
   try {
-    let enumProvider;
-    switch (provider) {
-      case "google":
-        enumProvider = SearchEngine.GOOGLE;
-        break;
-      case "bing":
-        enumProvider = SearchEngine.BING;
-        break;
-      case "duckduckgo":
-        enumProvider = SearchEngine.DUCKDUCKGO;
-        break;
-      case "yahoo":
-        enumProvider = SearchEngine.YAHOO;
-        break;
-      default:
-        return res.status(400).json({ message: "Invalid provider" });
-    }
+    // Get search engine enum
+    const searchEngine = getSearchEngine(provider);
 
-    // Get cancellable search
-    const { promise, cancel } = await scraper.search(query, enumProvider);
+    // Start cancellable search
+    const { promise, cancel } = await scraper.search(query, searchEngine);
 
-    // Store cancel function for this request
-    activeRequests.set(requestId, cancel);
+    // Setup automatic cancellation on client disconnect
+    const handleCancel = () => {
+      console.log(
+        `Client disconnected, cancelling search for query: "${query}"`,
+      );
+      cancel();
+    };
 
-    // Handle client disconnect (request cancellation)
-    req.on("close", () => {
-      console.log(`Client disconnected, cancelling request ${requestId}`);
-      const cancelFn = activeRequests.get(requestId);
-      if (cancelFn) {
-        cancelFn();
-        activeRequests.delete(requestId);
-      }
-    });
+    // Listen for client disconnect events
+    req.on("close", handleCancel);
+    req.on("aborted", handleCancel);
 
-    // Handle abort signal if available (for newer Node.js versions)
-    if (req.signal) {
-      req.signal.addEventListener("abort", () => {
-        console.log(`Request aborted, cancelling request ${requestId}`);
-        const cancelFn = activeRequests.get(requestId);
-        if (cancelFn) {
-          cancelFn();
-          activeRequests.delete(requestId);
-        }
-      });
-    }
-
-    // Wait for results
+    // Wait for search results
     const results = await promise;
 
-    // Clean up - remove from active requests
-    activeRequests.delete(requestId);
-
     return res.json({
+      success: true,
       results,
-      requestId, // Include for potential future cancellation API
     });
   } catch (error) {
-    // Clean up on error
-    activeRequests.delete(requestId);
-
     console.error("Search error:", error);
 
-    // Handle cancellation error specifically
-    if (error instanceof Error && error.message === "Request cancelled") {
-      return res.status(499).json({
-        message: "Request cancelled",
-        requestId,
-      }); // 499 Client Closed Request
-    }
+    // Handle different error types
+    if (error instanceof Error) {
+      if (error.message === "Request cancelled") {
+        return res.status(499).json({
+          success: false,
+          message: "Request cancelled",
+        });
+      }
 
-    return res.status(500).json({
-      message: "Search failed",
-      error: error instanceof Error ? error.message : String(error),
-      requestId,
-    });
-  }
-}
-
-// Optional: Add endpoint to manually cancel requests
-async function cancelSearch(req: Request, res: Response) {
-  const { requestId } = req.params;
-
-  const cancelFn = activeRequests.get(requestId);
-  if (!cancelFn) {
-    return res.status(404).json({
-      message: "Request not found or already completed",
-      requestId,
-    });
-  }
-
-  try {
-    cancelFn();
-    activeRequests.delete(requestId);
-
-    return res.json({
-      message: "Request cancelled successfully",
-      requestId,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Failed to cancel request",
-      error: error instanceof Error ? error.message : String(error),
-      requestId,
-    });
-  }
-}
-
-// Optional: Get status of all active requests
-async function getActiveRequests(req: Request, res: Response) {
-  const scraperStatus = scraper?.getStatus();
-
-  return res.json({
-    activeRequestsCount: activeRequests.size,
-    activeRequestIds: Array.from(activeRequests.keys()),
-    scraperStatus,
-  });
-}
-
-// Optional: Cancel all active requests
-async function cancelAllRequests(req: Request, res: Response) {
-  try {
-    const cancelledCount = activeRequests.size;
-
-    // Cancel all stored requests
-    for (const [requestId, cancelFn] of activeRequests) {
-      try {
-        cancelFn();
-      } catch (error) {
-        console.error(`Error cancelling request ${requestId}:`, error);
+      if (error.message === "Invalid provider") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid provider",
+        });
       }
     }
 
-    // Clear the map
-    activeRequests.clear();
-
-    // Also cancel any requests still in scraper queue
-    const scraperCancelled = scraper?.cancelAllRequests() || 0;
-
-    return res.json({
-      message: "All requests cancelled",
-      cancelledRequests: cancelledCount,
-      scraperCancelled,
-    });
-  } catch (error) {
     return res.status(500).json({
-      message: "Failed to cancel all requests",
+      success: false,
+      message: "Search failed",
       error: error instanceof Error ? error.message : String(error),
     });
   }
 }
 
-// Cleanup function - call this when shutting down server
-function cleanup() {
-  console.log(`Cleaning up ${activeRequests.size} active requests`);
-  for (const [requestId, cancelFn] of activeRequests) {
-    try {
-      cancelFn();
-    } catch (error) {
-      console.error(
-        `Error cancelling request ${requestId} during cleanup:`,
-        error,
-      );
-    }
-  }
-  activeRequests.clear();
-}
-
-// Export the functions
-export { search, cancelSearch, getActiveRequests, cancelAllRequests, cleanup };
-
+// Setup routes
 const router = Router();
+
 router.post("/search", search);
+
 export default router;
