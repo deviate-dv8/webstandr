@@ -34,7 +34,7 @@ export default class SERPScraper {
           "--disable-setuid-sandbox",
           "--disable-blink-features=AutomationControlled",
         ],
-        disableXvfb: true,
+        disableXvfb: false,
         plugins: [],
       });
       // Store both browser
