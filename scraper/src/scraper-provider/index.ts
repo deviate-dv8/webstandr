@@ -66,9 +66,16 @@ export default class SERPScraper {
         // all data-rpos contains a tag with link
         // all data-rpos contains h3 for title
         // all data-rpos contains span for description
+        await page.bringToFront();
         const rsoDiv = await page.$("#rso");
         if (!rsoDiv) {
+          await page.bringToFront();
+          const captcha = await page.$("form#captcha-form");
+          if (captcha) {
+            throw new Error("Captcha detected");
+          }
           const searchDiv = await page.$("div#search");
+          await page.bringToFront();
           if (searchDiv) {
             throw new Error("No results found in Google search.");
           } else {
@@ -110,6 +117,7 @@ export default class SERPScraper {
         // all li contains a.tilk tag with link
         // all li contains hw for title
         // all datail contains p for description
+        await page.bringToFront();
         const bResults = await page.$("ol#b_results");
         if (!bResults) {
           await page.screenshot({ path: "bing_search_error.png" });
@@ -117,11 +125,13 @@ export default class SERPScraper {
             "Might be blocked by Bing, try using a different search engine.",
           );
         } else {
+          await page.bringToFront();
           const b_no = await page.$("ol#b_results > li.b_no");
           if (b_no) {
             throw new Error("No results found in Bing search.");
           }
         }
+        await page.bringToFront();
         const resultElements = await page.$$("li.b_algo");
         let rank = 0;
         for (const element of resultElements) {
@@ -152,8 +162,10 @@ export default class SERPScraper {
         // all li contains a tag with link classified by data-testid="result-extras-url-link"
         // all li contains h2 for title
         // all li contains a div[data-result="snippet"] span for description
+        await page.bringToFront();
         const olElement = await page.$("ol.react-results--main");
         if (!olElement) {
+          await page.bringToFront();
           const noResultFound = (await page.$$("b")).length == 1;
           if (noResultFound) {
             throw new Error("No results found in DuckDuckGo search.");
@@ -196,8 +208,10 @@ export default class SERPScraper {
         // all li contains div.compTitle > a:first-child  tag with link
         // all li contains h3 for title
         // all details contains div.compText for description
+        await page.bringToFront();
         const regSearchCenterMiddle = await page.$("ol.searchCenterMiddle");
         if (!regSearchCenterMiddle) {
+          await page.bringToFront();
           const noResultFound = await page.$("ol.adultRegion");
           if (noResultFound) {
             throw new Error("No results found in Yahoo search.");
@@ -232,10 +246,12 @@ export default class SERPScraper {
           }
         }
       } else {
+        await page.close();
         throw new Error("Unsupported search engine");
       }
       return results;
     } catch (error) {
+      await page.close();
       console.error("Error preprocessing page result:", error);
       throw error;
     }
@@ -267,18 +283,24 @@ export default class SERPScraper {
       console.log("Browser not launched yet, launching now...");
       return this.search(query, searchEngine);
     }
+    let page: Page | null = null;
     try {
-      const page = await this.browser?.newPage();
+      page = await this.browser?.newPage();
       if (!page) {
         throw new Error("Failed to create a new page.");
       }
       const url = await this.urlQueryProvider(query, searchEngine);
-      await page.goto(url, { waitUntil: "networkidle2" });
+      await page.goto(url, { waitUntil: "load" });
       const results = await this.preprocessPageResult(page, searchEngine);
-      await page.close();
+      if (!page.isClosed()) {
+        await page.close();
+      }
       console.log("results:", results);
       return results;
     } catch (error) {
+      if (!page?.isClosed()) {
+        await page?.close();
+      }
       console.error("Error during search:", error);
       throw error;
     }
