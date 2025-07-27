@@ -59,7 +59,7 @@ export default class SERPScraper {
           "--disable-setuid-sandbox",
           "--disable-blink-features=AutomationControlled",
         ],
-        disableXvfb: true,
+        disableXvfb: process.env.NODE_ENV === "development",
         plugins: [],
       });
 

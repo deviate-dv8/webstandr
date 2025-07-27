@@ -1,7 +1,9 @@
+import dotenv from "dotenv";
 import express from "express";
 import SERPScraper from "./scraper-provider";
 import routes from "./routes";
 // Initialize
+dotenv.config();
 const app = express();
 export let scraper: SERPScraper | null = null;
 const PORT = 3000;
