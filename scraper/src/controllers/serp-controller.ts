@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import z from "zod";
-import { scraper } from "../app";
+import { scraper } from "../";
 import { SearchEngine } from "../scraper-provider";
 const SearchSchema = z.object({
   query: z.string().min(1, "Query must not be empty"),
