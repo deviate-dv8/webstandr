@@ -224,7 +224,12 @@ export default class SERPScraper {
       if (task.cancelled || task.abortController.signal.aborted) {
         throw new Error("Request cancelled");
       }
-
+      // Updated this since sometimes Google Search can take longer
+      if (task.searchEngine === SearchEngine.GOOGLE) {
+        tab.page.setDefaultNavigationTimeout(60000);
+      } else {
+        tab.page.setDefaultNavigationTimeout(30000);
+      }
       // Navigate with timeout and abort signal awareness
       await Promise.race([
         tab.page.goto(url, { waitUntil: "load" }),
