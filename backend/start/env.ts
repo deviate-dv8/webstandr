@@ -52,5 +52,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   REDIS_PORT: Env.schema.number(),
   REDIS_PASSWORD: Env.schema.string.optional(),
 
-  FRONTEND_URL: Env.schema.string()
+  FRONTEND_URL: Env.schema.string(),
+  SCRAPER_URL: Env.schema.string(),
 })
