@@ -11,7 +11,8 @@ definePageMeta({
 				<div class="">
 					<div class="flex flex-col items-start">
 						<h1 class="text-3xl font-semibold text-gray-800 lg:text-4xl">Search Engine Result Page Ranker across all
-							<br> <span class="text-orange-500 ">Search Engines</span></h1>
+							<br> <span class="text-orange-500 ">Search Engines</span>
+						</h1>
 						<p class="mt-3 text-gray-600 mb-6">
 							Monitor your website’s position on Google and Bing. Stay updated, spot trends, and grow with clear
 							insights.
