@@ -1,0 +1,28 @@
+{
+  "name": "webstandr",
+  "version": "1.0.0",
+  "description": "a website SERP checker with NuxtJS and AdonisJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "frontend": "npm run dev --workspace frontend",
+    "backend": "npm run dev --workspace backend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deviate-dv8/webstandr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/deviate-dv8/webstandr/issues"
+  },
+  "homepage": "https://github.com/deviate-dv8/webstandr#readme",
+  "private":true,
+  "workspaces":[
+  "frontend",
+  "backend"
+  ]
+}
