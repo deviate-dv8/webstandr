@@ -34,7 +34,9 @@ class="items-center justify-center p-2 cursor-pointer flex md:hidden" type="butt
 				<div>
 					<Button @click="signOutHandler">
 						<Icon name="streamline:logout-1" />
-						Logout
+						<p class="hidden md:block">
+							Logout
+						</p>
 					</Button>
 				</div>
 			</div>
