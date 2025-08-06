@@ -43,7 +43,8 @@ export default class SERPScraper {
   private maxTabs: number;
   private maxQueueSize: number;
   private processingQueue: boolean = false;
-  private tabIdleTimeout: number = 5000;
+  private tabIdleTimeout: number = 60000;
+  public ready: boolean = false;
 
   constructor(maxTabs: number = 1000, maxQueueSize: number = 1000) {
     this.maxTabs = maxTabs;
@@ -61,22 +62,46 @@ export default class SERPScraper {
           "--disable-setuid-sandbox",
           "--disable-blink-features=AutomationControlled",
         ],
+        turnstile: true,
+        proxy: {
+          host: process.env.PROXY_HOST || "",
+          port: parseInt(process.env.PROXY_PORT || "0", 10),
+        },
         disableXvfb: process.env.NODE_ENV === "development",
+        ignoreAllFlags: false,
         plugins: [],
       });
 
       this.browser = browser as unknown as Browser;
       await page.setViewport({ width: 1280, height: 800 });
+      await page.goto("https://www.google.com");
+      try {
+        const { cancel, promise } = await this.search(
+          "Minecraft",
+          SearchEngine.GOOGLE,
+        );
+        await promise;
 
-      // Initialize the first tab in the pool
-      this.tabPool.push({
-        page: page as unknown as Page,
-        busy: false,
-        lastUsed: Date.now(),
-      });
+        this.ready = true;
+        console.log(
+          "Browser launched and initial search completed successfully!",
+        );
+        await page.close();
+        // Initialize the first tab in the pool
+        // this.tabPool.push({
+        //   page: page as unknown as Page,
+        //   busy: false,
+        //   lastUsed: Date.now(),
+        // });
 
-      // Start idle tab cleanup
-      this.startIdleTabCleanup();
+        // Start idle tab cleanup
+        this.startIdleTabCleanup();
+      } catch (error) {
+        console.error("Error during initial search:", error);
+        this.ready = false;
+        await this.closeBrowser();
+        await this.launchBrowser();
+      }
     } catch (error) {
       console.error("Error launching browser:", error);
     }
@@ -232,7 +257,7 @@ export default class SERPScraper {
       }
       // Navigate with timeout and abort signal awareness
       await Promise.race([
-        tab.page.goto(url, { waitUntil: "load" }),
+        tab.page.goto(url, { waitUntil: "networkidle2" }),
         new Promise((_, reject) => {
           task.abortController.signal.addEventListener("abort", () => {
             reject(new Error("Request cancelled"));
@@ -603,7 +628,6 @@ export default class SERPScraper {
         );
       }
     }
-
     return await page.evaluate(() => {
       const results: SearchResult[] = [];
       const resultElements = document.querySelectorAll(
@@ -628,8 +652,8 @@ export default class SERPScraper {
               const domain = new URL(link).hostname;
               results.push({
                 title,
-                link,
-                description,
+                link: "",
+                description: "",
                 rank: rank++,
                 domain,
               });

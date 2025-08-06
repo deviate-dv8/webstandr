@@ -17,9 +17,16 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to SERP Scraper API" });
 });
 app.use("/api", routes);
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   scraper = new SERPScraper(parseInt(process.env.TAB_LIMIT as string) || 1000);
   console.log("⚡️[server]: Server is running at http://localhost:" + PORT);
+  const PROXY_HOST = process.env.PROXY_HOST;
+  const PROXY_PORT = process.env.PROXY_PORT;
+  if (PROXY_HOST && PROXY_PORT) {
+    console.log(`Using proxy: ${PROXY_HOST}:${PROXY_PORT}`);
+  } else {
+    console.log("No proxy configured.");
+  }
 });
 
 process.on("SIGINT", async () => {
