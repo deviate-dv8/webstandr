@@ -23,6 +23,6 @@
   "private":true,
   "workspaces":[
   "frontend",
-  "backend"
+  "scraper-backend"
   ]
 }
