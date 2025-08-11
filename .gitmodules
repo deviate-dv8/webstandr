@@ -1,0 +1,3 @@
+[submodule "scraper-backend"]
+	path = scraper-backend
+	url = https://github.com/deviate-dv8/serpfree
