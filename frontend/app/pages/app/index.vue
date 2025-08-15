@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { ChartData } from "chart.js"
 definePageMeta({
-	middleware: ['sidebase-auth']
+	middleware: ['sidebase-auth'],
+	layout: 'app-layout'
 })
 const websiteColumns = ['name', 'url', 'type', 'provider', 'prompt', 'frequency', 'ranking']
 const websitesData = reactive([
@@ -64,86 +65,59 @@ const chartData: ChartData = {
 		},
 	]
 }
-const showDashboard = ref(true)
-const showDashboardMobile = ref(false)
-watchEffect(() => {
-	console.log(showDashboard.value)
-})
 </script>
 <template>
-	<main class="relative min-h-screen flex flex-col">
-		<DashboardAppHeader class="sticky top-0 z-50" @toggle-desktop="() => { showDashboard = !showDashboard }"
-			@toggle-mobile="() => { showDashboardMobile = !showDashboardMobile }" />
-		<div class="relative flex-1 flex h-full">
-			<!-- Mobile Navbar -->
-			<aside class="hidden">
-				<Drawer v-model:visible="showDashboardMobile" :show-close-icon=false>
-					<DashboardAppNav />
-				</Drawer>
-			</aside>
-			<!-- Desktop Navbar	 -->
-			<aside
-				class="relative flex-col flex-1 py-8 bg-white border-gray-200 border-r rtl:border-r-0 rtl:border-l min-h-screen hidden md:flex duration-300"
-				:class="{ 'max-w-3xs px-4': showDashboard, 'max-w-0 px-0': !showDashboard }">
-				<div class=" sticky top-[106px] overflow-x-hidden">
-					<DashboardAppNav />
-				</div>
-			</aside>
-			<section class="flex-1 w-full">
-				<div class="p-8 mx-auto w-full max-w-full min-[calc(1920px+64px)]:container h-full">
-					<!-- Card Analytics -->
-					<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-12">
-						<div class="rounded-2xl bg-orange-500 px-4 py-6 flex justify-between text-white">
-							<div class="">
-								<p class="text-xl font-medium">Websites</p>
-								<p class="text-3xl font-bold mt-8">100</p>
-							</div>
-							<Icon name="streamline-plump:web-solid" class="text-4xl" />
-						</div>
+	<div>
 
-						<div class="rounded-2xl px-4 py-6 flex justify-between border border-gray-300 ">
-							<div class="">
-								<p class="text-xl font-medium">My Top Website</p>
-								<p class="text-3xl font-bold mt-8">Minecraft.com</p>
-								<p class="text-sm text-gray-500"><span class="text-green-600 font-bold"># 1-5</span> Rank since last
-									week
-								</p>
-							</div>
-							<Icon name="solar:ranking-bold-duotone" class="text-4xl" />
-						</div>
-						<div class="rounded-2xl px-4 py-6 flex justify-between border border-gray-300 ">
-							<div class="">
-								<p class="text-xl font-medium">Keywords tracked</p>
-								<p class="text-3xl font-bold mt-8">24</p>
-							</div>
-							<Icon name="bi:alphabet" class="text-4xl" />
-						</div>
-						<div class="rounded-2xl px-4 py-6 flex justify-between border border-gray-300 ">
-							<div class="">
-								<p class="text-xl font-medium">Page 1 Rankings</p>
-								<p class="text-3xl font-bold mt-8">12</p>
-								<p class="text-sm text-gray-500"><span class="text-green-600 font-bold">+3</span> this week</p>
-							</div>
-							<Icon name="mdi:numeric-1-box" class="text-4xl" />
-						</div>
-					</div>
-					<div class="p-4 flex items-center justify-center">
-						<div class="w-[750px]">
-							<Chart type="line" :data="chartData" class="w-full border border-gray-300 rounded-xl p-4" />
-						</div>
-					</div>
-					<div class="p-4 rounded-xl border mt-8 border-gray-300">
-						<DataTable :value="websitesData">
-							<template #header>
-								<div class="flex flex-wrap items-center justify-between gap-2">
-									<span class="text-xl font-bold">Websites</span>
-								</div>
-							</template>
-							<Column v-for="col in websiteColumns" :key="col" :field="col" :header="col" />
-						</DataTable>
-					</div>
+		<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-12">
+			<div class="rounded-2xl bg-orange-500 px-4 py-6 flex justify-between text-white">
+				<div class="">
+					<p class="text-xl font-medium">Websites</p>
+					<p class="text-3xl font-bold mt-8">100</p>
 				</div>
-			</section>
+				<Icon name="streamline-plump:web-solid" class="text-4xl" />
+			</div>
+
+			<div class="rounded-2xl px-4 py-6 flex justify-between border border-gray-300 ">
+				<div class="">
+					<p class="text-xl font-medium">My Top Website</p>
+					<p class="text-3xl font-bold mt-8">Minecraft.com</p>
+					<p class="text-sm text-gray-500"><span class="text-green-600 font-bold"># 1-5</span> Rank since last
+						week
+					</p>
+				</div>
+				<Icon name="solar:ranking-bold-duotone" class="text-4xl" />
+			</div>
+			<div class="rounded-2xl px-4 py-6 flex justify-between border border-gray-300 ">
+				<div class="">
+					<p class="text-xl font-medium">Keywords tracked</p>
+					<p class="text-3xl font-bold mt-8">24</p>
+				</div>
+				<Icon name="bi:alphabet" class="text-4xl" />
+			</div>
+			<div class="rounded-2xl px-4 py-6 flex justify-between border border-gray-300 ">
+				<div class="">
+					<p class="text-xl font-medium">Page 1 Rankings</p>
+					<p class="text-3xl font-bold mt-8">12</p>
+					<p class="text-sm text-gray-500"><span class="text-green-600 font-bold">+3</span> this week</p>
+				</div>
+				<Icon name="mdi:numeric-1-box" class="text-4xl" />
+			</div>
 		</div>
-	</main>
+		<div class="p-4 flex items-center justify-center">
+			<div class="w-[750px]">
+				<Chart type="line" :data="chartData" class="w-full border border-gray-300 rounded-xl p-4" />
+			</div>
+		</div>
+		<div class="p-4 rounded-xl border mt-8 border-gray-300">
+			<DataTable :value="websitesData">
+				<template #header>
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<span class="text-xl font-bold">Websites</span>
+					</div>
+				</template>
+				<Column v-for="col in websiteColumns" :key="col" :field="col" :header="col" />
+			</DataTable>
+		</div>
+	</div>
 </template>
