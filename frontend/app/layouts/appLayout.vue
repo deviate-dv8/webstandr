@@ -7,7 +7,7 @@ const showDashboardMobile = ref(false)
 	<main class="relative min-h-screen flex flex-col">
 		<DashboardAppHeader class="sticky top-0 z-50" @toggle-desktop="() => { showDashboard = !showDashboard }"
 			@toggle-mobile="() => { showDashboardMobile = !showDashboardMobile }" />
-		<div class="relative flex-1 flex h-full">
+		<div class="relative flex-1 flex">
 			<!-- Mobile Navbar -->
 			<aside class="hidden">
 				<Drawer v-model:visible="showDashboardMobile" :show-close-icon=false>
@@ -16,7 +16,7 @@ const showDashboardMobile = ref(false)
 			</aside>
 			<!-- Desktop Navbar	 -->
 			<aside
-				class="relative flex-col flex-1 py-8 bg-white border-gray-200 border-r rtl:border-r-0 rtl:border-l min-h-screen hidden md:flex duration-300"
+				class="relative flex-col flex-1 py-8 bg-white border-gray-200 border-r rtl:border-r-0 rtl:border-l min-h-[calc(100svh-74px)] hidden md:flex duration-300"
 				:class="{ 'max-w-3xs px-4': showDashboard, 'max-w-0 px-0': !showDashboard }">
 				<div class=" sticky top-[106px] overflow-x-hidden">
 					<DashboardAppNav />

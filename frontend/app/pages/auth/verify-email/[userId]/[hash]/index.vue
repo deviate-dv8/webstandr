@@ -13,7 +13,6 @@ const { error } = await useFetch(`${API}/api/email/verify-email/${userId}/${hash
 <template>
 	<main>
 		<AuthHeader />
-
 		<section class="min-h-[calc(100svh-60px)] flex items-center justify-center">
 			<div v-if="!error" class="container flex flex-col items-center justify-center px-6 mx-auto">
 				<Icon name="lets-icons:check-fill" style="font-size:4rem; color:limegreen" />
