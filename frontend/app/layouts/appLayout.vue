@@ -16,7 +16,7 @@ const showDashboardMobile = ref(false)
 			</aside>
 			<!-- Desktop Navbar	 -->
 			<aside
-				class="relative flex-col flex-1 py-8 bg-white border-gray-200 border-r rtl:border-r-0 rtl:border-l min-h-[calc(100svh-74px)] hidden md:flex duration-300"
+				class="relative flex-col flex-1 py-8 bg-white border-gray-200  rtl:border-r-0 rtl:border-l min-h-[calc(100svh-74px)] hidden md:flex duration-300"
 				:class="{ 'max-w-3xs px-4': showDashboard, 'max-w-0 px-0': !showDashboard }">
 				<div class=" sticky top-[106px] overflow-x-hidden">
 					<DashboardAppNav />
