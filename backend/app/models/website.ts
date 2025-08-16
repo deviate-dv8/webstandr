@@ -1,8 +1,9 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import User from './user.js'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import { randomUUID } from 'node:crypto'
+import Prompt from './prompt.js'
 
 export default class Website extends BaseModel {
   @column({ isPrimary: true })
@@ -21,10 +22,16 @@ export default class Website extends BaseModel {
   declare icon: string | null
 
   @column()
+  declare type: 'personal' | 'competitor'
+
+  @column()
   declare userId: number
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
+
+  @hasMany(() => Prompt)
+  declare prompts: HasMany<typeof Prompt>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

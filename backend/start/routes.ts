@@ -15,6 +15,7 @@ const AuthController = () => import('#controllers/auth_controller')
 const UsersController = () => import('#controllers/users_controller')
 const EmailsController = () => import('#controllers/emails_controller')
 const WebsitesController = () => import('#controllers/websites_controller')
+const PromptsController = () => import('#controllers/prompts_controller')
 
 router.get('/', async () => {
   return {
@@ -64,6 +65,10 @@ router
       .use(['index', 'store', 'update', 'destroy'], middleware.allow_development())
     router
       .resource('websites', WebsitesController)
+      .apiOnly()
+      .use('*', middleware.auth({ guards: ['api'] }))
+    router
+      .resource('prompts', PromptsController)
       .apiOnly()
       .use('*', middleware.auth({ guards: ['api'] }))
   })
