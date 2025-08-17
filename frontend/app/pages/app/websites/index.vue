@@ -18,8 +18,8 @@ definePageMeta({
 				</p>
 			</button>
 			<NuxtLink v-for="_ in 5"
-				class="flex justify-between items-center px-6 py-2 font-medium tracking-wide hover:text-white transition-colors duration-300 transform bg-gray-100 rounded-lg hover:bg-orange-500 focus:outline-none focus:ring focus:ring-orange-300 focus:ring-opacity-80 h-32 border-2 border-gray-800 text-gray-800 hover:border-orange-500">
-				<Icon name="streamline-plump:web-remix" class="text-3xl" />
+				class="gap-8 flex justify-between items-center px-6 py-2 font-medium tracking-wide hover:text-white transition-colors duration-300 transform bg-gray-100 rounded-lg hover:bg-orange-500 focus:outline-none focus:ring focus:ring-orange-300 focus:ring-opacity-80 h-32 border border-gray-300 text-gray-800 hover:border-orange-500">
+				<Icon name="mdi:web" class="text-3xl" />
 				<div>
 					<p class=" font-bold">
 						Minecraft
