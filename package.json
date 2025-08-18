@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "frontend": "npm run dev --workspace frontend",
-    "backend": "npm run dev --workspace backend"
+    "backend": "npm run dev --workspace backend",
+    "serp":"npm run dev --workspace scraper-backend"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   "private":true,
   "workspaces":[
   "frontend",
-  "scraper-backend"
+  "scraper-backend",
+  "backend"
   ]
 }
