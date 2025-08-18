@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "frontend": "npm run dev --workspace frontend",
     "backend": "npm run dev --workspace backend",
+    "backend-full":"concurrently \"npm run dev --workspace backend\" \"npm run dev --workspace scraper-backend\"",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\" \"npm run serp\"",
     "serp":"npm run dev --workspace scraper-backend"
   },
   "repository": {
