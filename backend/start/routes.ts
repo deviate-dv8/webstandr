@@ -8,7 +8,7 @@
 */
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
-import { throttlePasswordReset } from './limiter.js'
+import { throttle, throttlePasswordReset } from './limiter.js'
 
 const HealthChecksController = () => import('#controllers/health_checks_controller')
 const AuthController = () => import('#controllers/auth_controller')
@@ -16,6 +16,7 @@ const UsersController = () => import('#controllers/users_controller')
 const EmailsController = () => import('#controllers/emails_controller')
 const WebsitesController = () => import('#controllers/websites_controller')
 const PromptsController = () => import('#controllers/prompts_controller')
+const SerpsController = () => import('#controllers/serps_controller')
 
 router.get('/', async () => {
   return {
@@ -71,5 +72,11 @@ router
       .resource('prompts', PromptsController)
       .apiOnly()
       .use('*', middleware.auth({ guards: ['api'] }))
+    router
+      .group(() => {
+        router.post('search', [SerpsController, 'search'])
+      })
+      .use(throttle)
+      .prefix('serp')
   })
   .prefix('api')

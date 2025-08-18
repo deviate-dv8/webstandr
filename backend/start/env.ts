@@ -53,5 +53,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   REDIS_PASSWORD: Env.schema.string.optional(),
 
   FRONTEND_URL: Env.schema.string(),
-  SCRAPER_URL: Env.schema.string(),
+  SERP_BASE: Env.schema.string(),
+  SERP_GOOGLE: Env.schema.string(),
 })
