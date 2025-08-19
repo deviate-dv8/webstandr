@@ -1,3 +1,5 @@
+import PromptCreated from '#events/prompt_created'
+import PromptDeleted from '#events/prompt_deleted'
 import Prompt from '#models/prompt'
 import Website from '#models/website'
 import { createPromptValidator, updatePromptvalidator } from '#validators/prompt'
@@ -20,7 +22,9 @@ export default class PromptsController {
     if (!website) {
       return response.badRequest({ message: 'Website not found or you do not have access to it.' })
     }
-    const newPrompt = await Prompt.create({ ...payload, userId: auth.user!.id })
+    let newPrompt = await Prompt.create({ ...payload, userId: auth.user!.id })
+    newPrompt = await newPrompt.refresh()
+    await PromptCreated.dispatch(newPrompt)
     return newPrompt
   }
 
@@ -55,6 +59,7 @@ export default class PromptsController {
   async destroy({ params, auth }: HttpContext) {
     const prompt = await Prompt.findByOrFail({ id: params.id, userId: auth.user!.id })
     await prompt.delete()
+    PromptDeleted.dispatch(prompt)
     return prompt
   }
 }

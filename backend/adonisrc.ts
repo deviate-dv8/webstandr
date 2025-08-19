@@ -40,7 +40,7 @@ export default defineConfig({
     () => import('@adonisjs/core/providers/edge_provider'),
     () => import('@adonisjs/limiter/limiter_provider'),
     () => import('@adonisjs/redis/redis_provider'),
-    () => import('@adonisjs/static/static_provider')
+    () => import('@adonisjs/static/static_provider'),
   ],
 
   /*
@@ -55,6 +55,10 @@ export default defineConfig({
     () => import('#start/routes'),
     () => import('#start/kernel'),
     () => import('#start/events'),
+    {
+      file: () => import('#start/queue'),
+      environment: ['web'],
+    },
   ],
 
   /*
@@ -89,6 +93,6 @@ export default defineConfig({
     {
       pattern: 'public/**',
       reloadServer: false,
-    }
+    },
   ],
 })

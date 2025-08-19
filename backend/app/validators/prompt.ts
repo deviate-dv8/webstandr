@@ -6,6 +6,7 @@ export const createPromptValidator = vine.compile(
     query: vine.string().minLength(1).maxLength(1024),
     websiteId: vine.string().uuid(),
     provider: vine.enum(['google', 'duckduckgo', 'bing', 'yahoo']).optional(),
+    schedule: vine.enum(['daily', 'weekly', 'monthly', 'annually']).optional(),
   })
 )
 
@@ -15,5 +16,6 @@ export const updatePromptvalidator = vine.compile(
     query: vine.string().minLength(1).maxLength(1024).optional(),
     websiteId: vine.string().uuid().optional(),
     provider: vine.enum(['google', 'duckduckgo', 'bing', 'yahoo']).optional(),
+    schedule: vine.enum(['daily', 'weekly', 'monthly', 'annually']).optional(),
   })
 )

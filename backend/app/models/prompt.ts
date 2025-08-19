@@ -22,6 +22,12 @@ export default class Prompt extends BaseModel {
   declare user: BelongsTo<typeof User>
 
   @column()
+  declare provider: 'google' | 'bing' | 'duckduckgo' | 'yahoo'
+
+  @column()
+  declare schedule: 'daily' | 'weekly' | 'monthly' | 'annually'
+
+  @column()
   declare websiteId: string
 
   @belongsTo(() => Website)
