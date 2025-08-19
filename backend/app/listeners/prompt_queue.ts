@@ -1,5 +1,5 @@
 import PromptCreated from '#events/prompt_created'
-import { scheduleToMs, SERPQueue } from '#start/queue'
+import { scheduleToCron, SERPQueue } from '#start/queue'
 import { inject } from '@adonisjs/core'
 import { Logger } from '@adonisjs/core/logger'
 
@@ -11,7 +11,7 @@ export default class PromptQueue {
 
     await SERPQueue.upsertJobScheduler(
       prompt.id,
-      { every: scheduleToMs(prompt.schedule) },
+      { pattern: scheduleToCron(prompt.schedule) },
       {
         data: { prompt },
       }

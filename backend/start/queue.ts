@@ -4,19 +4,20 @@ import { Job, Queue, Worker } from 'bullmq'
 import env from './env.js'
 import axios from 'axios'
 
-export function scheduleToMs(schedule: Prompt['schedule']): number {
+export function scheduleToCron(schedule: Prompt['schedule']): string {
   switch (schedule) {
     case 'daily':
-      return 1000 * 60 * 60 * 24 // 24 hours
+      return '0 0 * * *' // Every day at midnight
     case 'weekly':
-      return 1000 * 60 * 60 * 24 * 7 // 7 days
+      return '0 0 * * 0' // Every week on Sunday at midnight
     case 'monthly':
-      return 1000 * 60 * 60 * 24 * 30 // 30 days
+      return '0 0 1 * *' // Every month on the first day at midnight
     case 'annually':
-      return 1000 * 60 * 60 * 24 * 365 // 365 days
+      return '0 0 1 1 *' // Every year on January 1st at midnight
+    default:
+      throw new Error(`Unknown schedule type: ${schedule}`)
   }
 }
-
 async function scheduleSERPJobs(queue: Queue) {
   const prompts = await Prompt.all()
   const promptIds = prompts.map((prompt) => prompt.id)
@@ -26,7 +27,7 @@ async function scheduleSERPJobs(queue: Queue) {
   for (const prompt of prompts) {
     await queue.upsertJobScheduler(
       prompt.id,
-      { every: scheduleToMs(prompt.schedule) },
+      { pattern: scheduleToCron(prompt.schedule) },
       { data: { prompt } }
     )
   }
