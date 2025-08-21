@@ -75,6 +75,7 @@ router
     router
       .group(() => {
         router.post('search', [SerpsController, 'search'])
+        router.post('favicon', [SerpsController, 'getFavicon'])
       })
       .use(throttle)
       .prefix('serp')

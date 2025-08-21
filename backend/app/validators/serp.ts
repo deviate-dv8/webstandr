@@ -6,3 +6,9 @@ export const searchValidator = vine.compile(
     provider: vine.enum(['google', 'bing', 'duckduckgo', 'yahoo']),
   })
 )
+
+export const faviconValidator = vine.compile(
+  vine.object({
+    url: vine.string().url().maxLength(255),
+  })
+)
