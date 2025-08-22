@@ -80,5 +80,7 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "@sidebase/nuxt-auth",
     "@primevue/nuxt-module",
+    "@vueuse/nuxt",
+    "@vee-validate/nuxt",
   ],
 });
