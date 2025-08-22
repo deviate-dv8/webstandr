@@ -19,7 +19,7 @@
     "@vee-validate/zod": "^4.15.1",
     "chart.js": "^4.5.0",
     "eslint": "^9.28.0",
-    "nuxt": "^3.17.4",
+    "nuxt": "^4.0.3",
     "primevue": "^4.3.6",
     "typescript": "^5.8.3",
     "vue": "^3.5.15",
