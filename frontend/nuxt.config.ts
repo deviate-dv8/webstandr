@@ -73,6 +73,10 @@ export default defineNuxtConfig({
       },
     },
   },
+  icon: {
+    mode: "css",
+    cssLayer: "base",
+  },
   modules: [
     "@nuxt/eslint",
     "@nuxt/icon",
@@ -84,3 +88,4 @@ export default defineNuxtConfig({
     "@vee-validate/nuxt",
   ],
 });
+
