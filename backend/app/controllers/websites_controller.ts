@@ -13,8 +13,15 @@ export default class WebsitesController {
   /**
    * Handle form submission for the create action
    */
-  async store({ request, auth }: HttpContext) {
+  async store({ request, auth, response }: HttpContext) {
     const payload = await request.validateUsing(createWebsiteValidator)
+    // check compound unique url + userId
+    const existingWebsite = await Website.findBy({ url: payload.url, userId: auth.user!.id })
+    if (existingWebsite) {
+      return response.badRequest({
+        message: 'Website with this URL already exists in your account',
+      })
+    }
     const newWebsite = await Website.create({ ...payload, userId: auth.user!.id })
     return newWebsite
   }
