@@ -1,12 +1,45 @@
 import Website from '#models/website'
-import { createWebsiteValidator, updateWebsiteValidator } from '#validators/website'
+import {
+  createWebsiteValidator,
+  listWebsitesValidator,
+  updateWebsiteValidator,
+} from '#validators/website'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class WebsitesController {
   /**
    * Display a list of resource
    */
-  async index({ auth }: HttpContext) {
+  async index({ auth, request }: HttpContext) {
+    const payload = await request.validateUsing(listWebsitesValidator)
+    console.log(payload)
+    if (payload.search !== undefined && !payload.searchBy) {
+      return Website.query()
+        .where('userId', auth.user!.id)
+        .andWhere((query) => {
+          query
+            .where('name', 'like', `%${payload.search}%`)
+            .orWhere('url', 'like', `%${payload.search}%`)
+        })
+        .paginate(payload.page || 1, payload.limit || 10)
+    }
+    if (payload.search !== undefined && payload.searchBy === 'url') {
+      return Website.query()
+        .where('userId', auth.user!.id)
+        .andWhere('url', 'like', `%${payload.search}%`)
+        .paginate(payload.page || 1, payload.limit || 10)
+    }
+    if (payload.search !== undefined && payload.searchBy === 'name') {
+      return Website.query()
+        .where('userId', auth.user!.id)
+        .andWhere('name', 'like', `%${payload.search}%`)
+        .paginate(payload.page || 1, payload.limit || 10)
+    }
+    if (payload.page !== undefined || payload.limit !== undefined) {
+      return Website.query()
+        .where('userId', auth.user!.id)
+        .paginate(payload.page || 1, payload.limit || 10)
+    }
     return Website.findManyBy('userId', auth.user!.id)
   }
 
@@ -14,7 +47,9 @@ export default class WebsitesController {
    * Handle form submission for the create action
    */
   async store({ request, auth, response }: HttpContext) {
-    const payload = await request.validateUsing(createWebsiteValidator)
+    const payload = await request.validateUsing(createWebsiteValidator, {
+      meta: { userId: auth.user!.id },
+    })
     // check compound unique url + userId
     const existingWebsite = await Website.findBy({ url: payload.url, userId: auth.user!.id })
     if (existingWebsite) {
@@ -37,7 +72,9 @@ export default class WebsitesController {
    * Handle form submission for the edit action
    */
   async update({ params, request, auth }: HttpContext) {
-    const payload = await request.validateUsing(updateWebsiteValidator)
+    const payload = await request.validateUsing(updateWebsiteValidator, {
+      meta: { userId: auth.user!.id },
+    })
     const website = await Website.findByOrFail({ id: params.id, userId: auth.user!.id })
     const updatedWebsite = website.merge(payload).save()
     return updatedWebsite
