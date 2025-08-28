@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import z from "zod"
 definePageMeta({
 	middleware: ['is-authorized']
 })
 const { signIn } = useAuth();
 const loginCredentials = reactive({
+	emailOrUsername: '',
 	email: '',
+	username: '',
 	password: ''
 })
 interface signInError {
@@ -12,21 +15,42 @@ interface signInError {
 		message: string;
 	}
 }
+const validateEmail = z.object({
+	email: z.string().email()
+})
 function loginHandler() {
 	loginError.value = false;
 	loginErrorMessage.value = ""
-	if (!loginCredentials.email || !loginCredentials.password) {
+	if (!loginCredentials.emailOrUsername || !loginCredentials.password) {
 		loginError.value = true;
-		loginErrorMessage.value = 'Email and password are required.';
+		loginErrorMessage.value = 'email/username and password are required.';
 		return;
 	}
-	signIn(loginCredentials, { "callbackUrl": "/app" })
+	loginCredentials.email = '';
+	loginCredentials.username = '';
+	let parsedCredentials;
+	const emailValidation = validateEmail.safeParse({ email: loginCredentials.emailOrUsername });
+	if (emailValidation.success) {
+		parsedCredentials = {
+			email: emailValidation.data.email,
+			password: loginCredentials.password
+		}
+		loginCredentials.email = emailValidation.data.email;
+	}
+	else {
+		parsedCredentials = {
+			username: loginCredentials.emailOrUsername,
+			password: loginCredentials.password
+		}
+		loginCredentials.username = loginCredentials.emailOrUsername;
+	}
+	signIn(parsedCredentials, { "callbackUrl": "/app" })
 		.then()
 		.catch((error: signInError) => {
 			// Handle login error
 			loginError.value = true;
 			if (error.data) {
-				loginErrorMessage.value = 'Invalid email or password.';
+				loginErrorMessage.value = 'Invalid email/username or password.';
 			}
 			else {
 				// Fallback error message
@@ -47,9 +71,9 @@ const showPassword = ref(false);
 					<h3 class="mt-3 text-xl font-medium text-center text-gray-600">Login</h3>
 					<form>
 						<div class="w-full mt-4">
-							<input v-model="loginCredentials.email"
+							<input v-model="loginCredentials.emailOrUsername"
 								class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg focus:border-orange-400 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-orange-300"
-								type="email" placeholder="Email Address" aria-label="Email Address">
+								type="text" placeholder="Username or Email" aria-label="Email Address">
 						</div>
 
 						<div class="w-full mt-4 relative">

@@ -35,7 +35,7 @@ const { error } = await useFetch(`${API}/api/email/verify-email/${userId}/${hash
 					Email Verification Failed
 				</h1>
 				<p class="mt-2 text-gray-600 text-center">
-					The email verification link is invalid or has expired. Please try again.
+					The email verification link is invalid or has expired.
 				</p>
 				<NuxtLink to="/" class="mt-6 text-sm text-orange-500 hover:underline">
 					<button
