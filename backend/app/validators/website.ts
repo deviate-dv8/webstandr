@@ -49,3 +49,9 @@ export const listWebsitesValidator = vine.compile(
     searchBy: vine.enum(['name', 'url']).optional(),
   })
 )
+
+export const validateUrl = vine.compile(
+  vine.object({
+    search: vine.string().toLowerCase().url().maxLength(255),
+  })
+)

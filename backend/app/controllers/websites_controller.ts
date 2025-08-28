@@ -3,6 +3,7 @@ import {
   createWebsiteValidator,
   listWebsitesValidator,
   updateWebsiteValidator,
+  validateUrl,
 } from '#validators/website'
 import type { HttpContext } from '@adonisjs/core/http'
 
@@ -24,9 +25,10 @@ export default class WebsitesController {
         .paginate(payload.page || 1, payload.limit || 10)
     }
     if (payload.search !== undefined && payload.searchBy === 'url') {
+      const isValid = await validateUrl.validate({ search: payload.search })
       return Website.query()
         .where('userId', auth.user!.id)
-        .andWhere('url', 'like', `%${payload.search}%`)
+        .andWhere('url', payload.search)
         .paginate(payload.page || 1, payload.limit || 10)
     }
     if (payload.search !== undefined && payload.searchBy === 'name') {
