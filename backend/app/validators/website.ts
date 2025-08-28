@@ -3,7 +3,10 @@ import vine from '@vinejs/vine'
 export const createWebsiteValidator = vine.compile(
   vine.object({
     name: vine.string().minLength(1).maxLength(64),
-    url: vine.string().url().maxLength(255),
+    url: vine.string().url().maxLength(255).unique({
+      table: 'websites',
+      column: 'url',
+    }),
     description: vine.string().maxLength(512).optional(),
     icon: vine.string().maxLength(255).optional(),
   })

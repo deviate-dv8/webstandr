@@ -1,9 +1,10 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column, hasOne } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import Website from './website.js'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasOne } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
+import SerpResponse from './serp_response.js'
 
 export default class Prompt extends BaseModel {
   @column({ isPrimary: true })
@@ -32,6 +33,9 @@ export default class Prompt extends BaseModel {
 
   @belongsTo(() => Website)
   declare website: BelongsTo<typeof Website>
+
+  @hasOne(() => SerpResponse)
+  declare serpResponses: HasOne<typeof SerpResponse>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
