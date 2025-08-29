@@ -23,8 +23,8 @@ const showDashboardMobile = ref(false)
 				</div>
 			</aside>
 			<section class="flex-1 w-full">
-				<div class="p-8 mx-auto w-full max-w-full min-[calc(1920px+64px)]:container h-full">
-					<slot />
+				<div class="p-1 md:p-2 lg:p4 mx-auto w-full max-w-full min-[calc(1920px+64px)]:container h-full">
+					<slot class="flex flex-col h-full" />
 				</div>
 			</section>
 		</div>

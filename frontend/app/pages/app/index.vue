@@ -68,7 +68,6 @@ const chartData: ChartData = {
 </script>
 <template>
 	<div>
-
 		<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-12">
 			<div class="rounded-2xl bg-orange-500 px-4 py-6 flex justify-between text-white">
 				<div class="">

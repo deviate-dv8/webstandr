@@ -14,6 +14,7 @@ const { data, refresh } = useFetch<Website[]>(`${API}/api/websites`, {
 })
 const createWebsiteSchema = z.object({
 	name: z.string().min(1, 'Name is required'),
+	description: z.string().optional(),
 	type: z.enum(['personal', 'competitor']),
 	url: z.string().refine(
 		(val) =>
@@ -43,6 +44,7 @@ const { values, errors, defineField, resetForm, meta } = useForm({
 	},
 });
 const [name, nameAttrs] = defineField('name')
+const [description, descriptionAttrs] = defineField('description')
 const [url, urlAttrs] = defineField('url')
 const [icon, iconAttrs] = defineField('icon')
 const [type, typeAttrs] = defineField('type')
@@ -101,7 +103,7 @@ watchDebounced(url, async (newValue) => {
 }, { debounce: 500 });
 async function createWebsite() {
 	const isValid = meta.value.valid;
-	if (!loadingVerifyUrl.value && !loadingFavicon.value) return;
+	if (loadingVerifyUrl.value || loadingFavicon.value) return;
 	if (!isValid) return;
 	try {
 		await $fetch(`${API}/api/websites/`, {
@@ -109,12 +111,7 @@ async function createWebsite() {
 			headers: {
 				'Authorization': `${token.value}`
 			},
-			body: {
-				name: name.value,
-				type: type.value,
-				url: url.value,
-				icon: icon.value
-			}
+			body: values,
 		})
 		showCreateWebsite.value = false;
 		await refresh()
@@ -131,7 +128,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-	<div class="flex flex-col h-full">
+	<div>
 		<Dialog v-model:visible="showCreateWebsite" header="Create Website" modal :style="{ margin: '10px' }" class="w-96">
 			<form action="" class="flex flex-col gap-4 " novalidate @submit.prevent="">
 				<div class="flex justify-center">
@@ -144,6 +141,11 @@ async function handleSubmit() {
 				<div class="w-full">
 					<InputText v-model="name" v-bind="nameAttrs" type="text" placeholder="Name" class='w-full' />
 					<p class="text-sm text-red-500">{{ errors.name }}</p>
+				</div>
+				<div class="w-full">
+					<InputText v-model="description" v-bind="descriptionAttrs" type="text" placeholder="Description"
+						class='w-full' />
+					<p class="text-sm text-red-500">{{ errors.description }}</p>
 				</div>
 				<div class="w-full relative">
 					<InputText v-model="url" v-bind="urlAttrs" type="text" placeholder="URL" class="w-full" />
