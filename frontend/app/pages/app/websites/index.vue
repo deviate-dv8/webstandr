@@ -38,6 +38,7 @@ const { values, errors, defineField, resetForm, meta } = useForm({
 	validateOnMount: true,
 	initialValues: {
 		name: '',
+		description: '',
 		type: 'personal',
 		url: undefined,
 		icon: undefined,
@@ -53,52 +54,14 @@ const loadingFavicon = ref(false);
 const loadingVerifyUrl = ref(false);
 const loadingCreateWebsite = ref(false)
 const uniqueUrl = ref<null | boolean>(null);
-async function getFavicon(url: string) {
-	try {
-		const newIcon = await $fetch<string>(`${API}/api/serp/favicon`, {
-			method: 'POST', body: {
-				url,
-			}
-		})
-		icon.value = newIcon;
-	}
-	catch {
-		icon.value = "";
-		return;
-	}
-}
-async function verifyUrl(url: string) {
-	try {
-		const result = await $fetch<{ data: Website[] }>(`${API}/api/websites`, {
-			method: 'GET',
-			headers: {
-				'Authorization': `${token.value}`
-			},
-			params: {
-				searchBy: 'url',
-				search: url
-			}
-		})
-		if (result.data.length == 0) {
-			uniqueUrl.value = true;
-		}
-		else {
-			uniqueUrl.value = false;
-		}
-		return true;
-	} catch {
-		uniqueUrl.value = null;
-		return false;
-	}
-}
 watchDebounced(url, async (newValue) => {
 	if (newValue == "") {
 		icon.value = "";
 		return;
 	}
 	await Promise.all([
-		setLoading(() => getFavicon(newValue as string), loadingFavicon),
-		setLoading(() => verifyUrl(newValue as string), loadingVerifyUrl)
+		setLoading(() => getFavicon(newValue as string, icon, API), loadingFavicon),
+		setLoading(() => verifyUrl(newValue as string, token.value as string, uniqueUrl, API), loadingVerifyUrl)
 	])
 }, { debounce: 500 });
 async function createWebsite() {
@@ -160,14 +123,13 @@ async function handleSubmit() {
 					<p class="text-sm text-red-500">{{ errors.icon }}</p>
 				</div>
 				<div class="w-full">
-
 					<Dropdown v-model="type" v-bind="typeAttrs" :options="['personal', 'competitor']" placeholder="Type"
 						class="w-full" />
 					<p class="text-sm text-red-500">{{ errors.type }}</p>
 				</div>
 			</form>
 			<template #footer>
-				<Button variant="outlined" @click="showCreateWebsite = false, resetForm()">Close</Button>
+				<Button variant="outlined" severity="secondary" @click="showCreateWebsite = false, resetForm()">Close</Button>
 				<Button :loading="loadingCreateWebsite" label="Create" @click="handleSubmit" />
 			</template>
 		</Dialog>
