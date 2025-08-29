@@ -17,6 +17,7 @@ export const createWebsiteValidator = vine.compile(
       }),
     description: vine.string().maxLength(512).optional(),
     icon: vine.string().maxLength(255).optional(),
+    type: vine.enum(['personal', 'competitor']).optional(),
   })
 )
 
@@ -38,6 +39,7 @@ export const updateWebsiteValidator = vine.compile(
       .optional(),
     description: vine.string().maxLength(512).optional(),
     icon: vine.string().maxLength(255).optional(),
+    type: vine.enum(['personal', 'competitor']).optional(),
   })
 )
 
