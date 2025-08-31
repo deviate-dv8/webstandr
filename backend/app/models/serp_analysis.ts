@@ -3,24 +3,18 @@ import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import SerpResponse from './serp_response.js'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
-export default class SerpResult extends BaseModel {
+export default class SerpAnalysis extends BaseModel {
   @column({ isPrimary: true })
-  declare id: string
+  declare id: number
 
   @column()
-  declare title: string
+  declare highestRankedResult: number | null
 
   @column()
-  declare link: string
+  declare averageRank: number | null
 
   @column()
-  declare description: string
-
-  @column()
-  declare rank: number
-
-  @column()
-  declare domain: string
+  declare frequency: number
 
   @column()
   declare serpResponseId: string
@@ -34,4 +28,3 @@ export default class SerpResult extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 }
-
