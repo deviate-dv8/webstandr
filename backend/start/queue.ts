@@ -20,7 +20,7 @@ export const SpeedInsightQueue = new Queue('SpeedInsightQueue', {
 })
 export const speedInsightWorker = new Worker(
   SpeedInsightQueue.name,
-  queueService.processSpeedInsightJob,
+  (job) => queueService.processSpeedInsightJob(job),
   {
     connection: redisConfig.connections.main,
     concurrency: 5,

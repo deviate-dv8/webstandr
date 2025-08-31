@@ -1,17 +1,21 @@
 import PromptCreated from '#events/prompt_created'
-import { scheduleToCron, SERPQueue } from '#start/queue'
+import { QueueService } from '#services/queue_service'
+import { SERPQueue } from '#start/queue'
 import { inject } from '@adonisjs/core'
 import { Logger } from '@adonisjs/core/logger'
 
 @inject()
 export default class PromptQueue {
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    private readonly logger: Logger,
+    private readonly queueService: QueueService
+  ) {}
   async handle(promptCreated: PromptCreated) {
     const prompt = promptCreated.prompt
     const website = promptCreated.website
     await SERPQueue.upsertJobScheduler(
       prompt.id,
-      { pattern: scheduleToCron(prompt.schedule) },
+      { pattern: this.queueService.scheduleToCron(prompt.schedule) },
       {
         data: { prompt, website },
       }

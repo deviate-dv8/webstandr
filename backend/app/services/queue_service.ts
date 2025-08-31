@@ -7,6 +7,7 @@ import SerpAnalysis from '#models/serp_analysis'
 import db from '@adonisjs/lucid/services/db'
 import env from '#start/env'
 import { Job, Queue } from 'bullmq'
+import WebsiteInsight from '#models/website_insight'
 interface SerpResponseType {
   id: string
   requestId: string
@@ -23,6 +24,18 @@ interface SerpResultType {
   description: string
   rank: number
   domain: string
+}
+
+interface PSIResponseType {
+  lighthouseResult: {
+    categories: {
+      'performance': { score: number }
+      'accessibility': { score: number }
+      'best-practices': { score: number }
+      'seo': { score: number }
+      'pwa': { score: number }
+    }
+  }
 }
 export class QueueService {
   scheduleToCron(schedule: Prompt['schedule'] | 'minutely' | 'hourly' | 'every5Sec'): string {
@@ -152,7 +165,57 @@ export class QueueService {
       }
     }
   }
+  public async getWebsiteLastInsight(website: Website) {
+    const url = website.url
+    const formattedUrl =
+      url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`
+    new URL(formattedUrl) // Validate the formatted URL
+    try {
+      const result = await axios.get<PSIResponseType>(
+        'https://www.googleapis.com/pagespeedonline/v5/runPagespeed?category=performance&category=accessibility&category=best-practices&category=seo',
+        {
+          method: 'GET',
+          params: {
+            key: env.get('PAGE_SPEED_INSIGHT_API'),
+            url: formattedUrl,
+          },
+        }
+      )
+      return result.data
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data
+        if (data) {
+          data
+        }
+        throw new Error(
+          `An error occurred while fetching Speed Insight results: ${data?.message || 'Unknown error'}`
+        )
+      }
+    }
+  }
   async processSpeedInsightJob(job: Job) {
+    const { website }: { website: Website } = job.data
+    const data = await this.getWebsiteLastInsight(website)
     console.log(`Processing Speed Insight job for job id: ${job.id}`)
+    if (data) {
+      const payload = {
+        performance: Math.round((data.lighthouseResult.categories.performance.score || 0) * 100),
+        accessibility: Math.round(
+          (data.lighthouseResult.categories.accessibility.score || 0) * 100
+        ),
+        bestPractices: Math.round(
+          (data.lighthouseResult.categories['best-practices'].score || 0) * 100
+        ),
+        seo: Math.round((data.lighthouseResult.categories.seo.score || 0) * 100),
+        websiteId: website.id,
+      }
+      const newWebsiteInsight = await WebsiteInsight.create(payload)
+      console.log('Created new Website Insight: ', newWebsiteInsight.id)
+      return data
+    } else {
+      console.log('No data received from PageSpeed Insights API')
+      throw new Error('No data received from PageSpeed Insights API')
+    }
   }
 }

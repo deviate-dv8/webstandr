@@ -55,4 +55,5 @@ export default await Env.create(new URL('../', import.meta.url), {
   FRONTEND_URL: Env.schema.string(),
   SERP_BASE: Env.schema.string(),
   SERP_GOOGLE: Env.schema.string(),
+  PAGE_SPEED_INSIGHT_API: Env.schema.string(),
 })

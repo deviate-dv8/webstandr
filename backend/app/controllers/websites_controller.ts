@@ -1,3 +1,5 @@
+import WebsiteCreated from '#events/website_created'
+import WebsiteDeleted from '#events/website_deleted'
 import Prompt from '#models/prompt'
 import Website from '#models/website'
 import {
@@ -61,6 +63,7 @@ export default class WebsitesController {
       })
     }
     const newWebsite = await Website.create({ ...payload, userId: auth.user!.id })
+    WebsiteCreated.dispatch(newWebsite)
     return newWebsite
   }
 
@@ -72,6 +75,9 @@ export default class WebsitesController {
       .where('id', params.id)
       .andWhere('userId', auth.user!.id)
       .preload('prompts')
+      .preload('websiteInsights', (query) => {
+        query.orderBy('createdAt', 'desc').limit(1)
+      })
       .withCount('prompts')
       .firstOrFail()
     return {
@@ -88,7 +94,8 @@ export default class WebsitesController {
       meta: { userId: auth.user!.id },
     })
     const website = await Website.findByOrFail({ id: params.id, userId: auth.user!.id })
-    const updatedWebsite = website.merge(payload).save()
+    const updatedWebsite = await website.merge(payload).save()
+    WebsiteCreated.dispatch(updatedWebsite)
     return updatedWebsite
   }
 
@@ -97,6 +104,7 @@ export default class WebsitesController {
    */
   async destroy({ params, auth }: HttpContext) {
     const website = await Website.findByOrFail({ id: params.id, userId: auth.user!.id })
+    await WebsiteDeleted.dispatch(website)
     await website.delete()
     return website
   }

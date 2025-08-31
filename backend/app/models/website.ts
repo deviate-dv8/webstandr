@@ -4,6 +4,7 @@ import User from './user.js'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import { randomUUID } from 'node:crypto'
 import Prompt from './prompt.js'
+import WebsiteInsight from './website_insight.js'
 
 export default class Website extends BaseModel {
   @column({ isPrimary: true })
@@ -32,6 +33,9 @@ export default class Website extends BaseModel {
 
   @hasMany(() => Prompt)
   declare prompts: HasMany<typeof Prompt>
+
+  @hasMany(() => WebsiteInsight)
+  declare websiteInsights: HasMany<typeof WebsiteInsight>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
