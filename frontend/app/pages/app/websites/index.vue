@@ -95,7 +95,8 @@ async function handleSubmit() {
 		<Dialog v-model:visible="showCreateWebsite" header="Create Website" modal :style="{ margin: '10px' }" class="w-96">
 			<form action="" class="flex flex-col gap-4 " novalidate @submit.prevent="">
 				<div class="flex justify-center">
-					<div class="h-12 w-12 border-gray-300 rounded-xl" :class="{
+					<div
+class="h-12 w-12 border-gray-300 rounded-xl" :class="{
 						'border': !icon,
 					}">
 						<img v-if="icon" :src="icon" alt="Website Icon" class="h-full w-full object-cover rounded-xl">
@@ -106,14 +107,16 @@ async function handleSubmit() {
 					<p class="text-sm text-red-500">{{ errors.name }}</p>
 				</div>
 				<div class="w-full">
-					<InputText v-model="description" v-bind="descriptionAttrs" type="text" placeholder="Description"
+					<InputText
+v-model="description" v-bind="descriptionAttrs" type="text" placeholder="Description"
 						class='w-full' />
 					<p class="text-sm text-red-500">{{ errors.description }}</p>
 				</div>
 				<div class="w-full relative">
 					<InputText v-model="url" v-bind="urlAttrs" type="text" placeholder="URL" class="w-full" />
 					<Icon v-if="loadingVerifyUrl" name="line-md:loading-loop" class="absolute top-3 right-4" />
-					<Icon v-if="!loadingVerifyUrl && uniqueUrl" name="material-symbols:check"
+					<Icon
+v-if="!loadingVerifyUrl && uniqueUrl" name="material-symbols:check"
 						class="text-green-500 absolute top-3 right-4" />
 					<p class="text-sm text-red-500">{{ errors.url }}</p>
 				</div>
@@ -123,7 +126,8 @@ async function handleSubmit() {
 					<p class="text-sm text-red-500">{{ errors.icon }}</p>
 				</div>
 				<div class="w-full">
-					<Dropdown v-model="type" v-bind="typeAttrs" :options="['personal', 'competitor']" placeholder="Type"
+					<Dropdown
+v-model="type" v-bind="typeAttrs" :options="['personal', 'competitor']" placeholder="Type"
 						class="w-full" />
 					<p class="text-sm text-red-500">{{ errors.type }}</p>
 				</div>
@@ -143,7 +147,8 @@ async function handleSubmit() {
 			</Button>
 		</div>
 		<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-h-full">
-			<NuxtLink v-for="website in data" :key="website.id" :to="`websites/${website.id}`"
+			<NuxtLink
+v-for="website in data" :key="website.id" :to="`/app/websites/${website.id}`"
 				class="gap-8 flex justify-between items-center px-6 py-2 font-medium tracking-wide hover:text-white transition-colors duration-300 transform  rounded-lg hover:bg-orange-500 focus:outline-none focus:ring focus:ring-orange-300 focus:ring-opacity-80 h-32 border border-gray-300 text-gray-800 hover:border-orange-500">
 
 				<Icon v-if="!website.icon" name="mdi:web" class="text-3xl" />

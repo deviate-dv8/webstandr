@@ -6,6 +6,7 @@ export interface Website {
   url: string;
   userId: number;
   icon: string;
+  prompts?: Prompt[];
   createdAt: Date;
   updatedAt: Date;
 }
