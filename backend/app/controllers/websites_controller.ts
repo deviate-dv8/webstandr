@@ -1,6 +1,7 @@
 import Prompt from '#models/prompt'
 import Website from '#models/website'
 import {
+  checkWebsiteValidator,
   createWebsiteValidator,
   listWebsitesValidator,
   updateWebsiteValidator,
@@ -98,5 +99,24 @@ export default class WebsitesController {
     const website = await Website.findByOrFail({ id: params.id, userId: auth.user!.id })
     await website.delete()
     return website
+  }
+
+  async checkWebsite({ request, response }: HttpContext) {
+    try {
+      const { url } = await request.validateUsing(checkWebsiteValidator)
+      const formattedUrl =
+        url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`
+      new URL(formattedUrl) // Validate the formatted URL
+      const res = await fetch(formattedUrl, { method: 'HEAD' })
+      if (res.ok) {
+        return response.ok({ message: 'Website is available' })
+      } else {
+        return response.badRequest({
+          message: "Website is not available in the DNS or doesn't exist",
+        })
+      }
+    } catch (error) {
+      return response.badRequest({ message: 'Invalid URL or Website is not available' })
+    }
   }
 }

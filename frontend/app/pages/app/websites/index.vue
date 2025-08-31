@@ -28,8 +28,16 @@ const createWebsiteSchema = z.object({
 				return false
 			}
 			return true
-		}
-			, { message: "URL is already added." }),
+		}, { message: "URL is already added." })
+		.refine(() => {
+			if (websiteExist.value) {
+				return true
+			}
+			else if (websiteExist.value == false) {
+				return false
+			}
+			return true
+		}, { message: "Website is not reachable." }),
 	icon: z.string().optional(),
 })
 const validationSchema = toTypedSchema(createWebsiteSchema)
@@ -53,7 +61,9 @@ const showCreateWebsite = ref(false);
 const loadingFavicon = ref(false);
 const loadingVerifyUrl = ref(false);
 const loadingCreateWebsite = ref(false)
+const loadingVerifyWebsite = ref(false)
 const uniqueUrl = ref<null | boolean>(null);
+const websiteExist = ref<null | boolean>(null);
 watchDebounced(url, async (newValue) => {
 	if (newValue == "") {
 		icon.value = "";
@@ -61,7 +71,8 @@ watchDebounced(url, async (newValue) => {
 	}
 	await Promise.all([
 		setLoading(() => getFavicon(newValue as string, icon, API), loadingFavicon),
-		setLoading(() => verifyUrl(newValue as string, token.value as string, uniqueUrl, API), loadingVerifyUrl)
+		setLoading(() => verifyUrl(newValue as string, token.value as string, uniqueUrl, API), loadingVerifyUrl),
+		setLoading(() => verifyWebsite(newValue as string, API, websiteExist), loadingVerifyWebsite)
 	])
 }, { debounce: 500 });
 async function createWebsite() {
@@ -114,10 +125,12 @@ v-model="description" v-bind="descriptionAttrs" type="text" placeholder="Descrip
 				</div>
 				<div class="w-full relative">
 					<InputText v-model="url" v-bind="urlAttrs" type="text" placeholder="URL" class="w-full" />
-					<Icon v-if="loadingVerifyUrl" name="line-md:loading-loop" class="absolute top-3 right-4" />
 					<Icon
-v-if="!loadingVerifyUrl && uniqueUrl" name="material-symbols:check"
-						class="text-green-500 absolute top-3 right-4" />
+v-if="loadingVerifyUrl || loadingVerifyWebsite" name="line-md:loading-loop"
+						class="absolute top-3 right-4" />
+					<Icon
+v-if="!loadingVerifyUrl && uniqueUrl && !loadingVerifyWebsite && websiteExist"
+						name="material-symbols:check" class="text-green-500 absolute top-3 right-4" />
 					<p class="text-sm text-red-500">{{ errors.url }}</p>
 				</div>
 				<div class="relative w-full">
