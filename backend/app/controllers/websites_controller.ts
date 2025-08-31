@@ -1,3 +1,4 @@
+import Prompt from '#models/prompt'
 import Website from '#models/website'
 import {
   createWebsiteValidator,
@@ -13,7 +14,6 @@ export default class WebsitesController {
    */
   async index({ auth, request }: HttpContext) {
     const payload = await request.validateUsing(listWebsitesValidator)
-    console.log(payload)
     if (payload.search !== undefined && !payload.searchBy) {
       return Website.query()
         .where('userId', auth.user!.id)
@@ -25,10 +25,10 @@ export default class WebsitesController {
         .paginate(payload.page || 1, payload.limit || 10)
     }
     if (payload.search !== undefined && payload.searchBy === 'url') {
-      const isValid = await validateUrl.validate({ search: payload.search })
+      const urlPayload = await validateUrl.validate({ search: payload.search })
       return Website.query()
         .where('userId', auth.user!.id)
-        .andWhere('url', payload.search)
+        .andWhere('url', urlPayload.search)
         .paginate(payload.page || 1, payload.limit || 10)
     }
     if (payload.search !== undefined && payload.searchBy === 'name') {
@@ -67,7 +67,16 @@ export default class WebsitesController {
    * Show individual record
    */
   async show({ params, auth }: HttpContext) {
-    return Website.findByOrFail({ id: params.id, userId: auth.user!.id })
+    const website = await Website.query()
+      .where('id', params.id)
+      .andWhere('userId', auth.user!.id)
+      .preload('prompts')
+      .withCount('prompts')
+      .firstOrFail()
+    return {
+      ...website.toJSON(),
+      promptCount: Number.parseInt(website.$extras.prompts_count as string),
+    }
   }
 
   /**
