@@ -5,8 +5,8 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
-      table.integer('highest_ranked_result').nullable() // Added this because the result may not include the website
+      table.uuid('id').primary()
+      table.integer('highest_rank').nullable() // Added this because the result may not include the website
       table.integer('average_rank').nullable() // Average rank of the website in the results
       table.integer('frequency').defaultTo(0) // How many times the website appears in the results
       table

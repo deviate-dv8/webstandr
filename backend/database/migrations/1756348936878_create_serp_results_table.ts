@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.uuid('id').primary()
       table.string('title')
       table.string('link')
-      table.string('description')
+      table.text('description')
       table.integer('rank').notNullable()
       table.string('domain')
       table

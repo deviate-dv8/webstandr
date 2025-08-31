@@ -1,9 +1,10 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column, hasMany, hasOne } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
 import Prompt from './prompt.js'
 import SerpResult from './serp_result.js'
+import SerpAnalysis from './serp_analysis.js'
 
 export default class SerpResponse extends BaseModel {
   @column({ isPrimary: true })
@@ -29,6 +30,9 @@ export default class SerpResponse extends BaseModel {
 
   @hasMany(() => SerpResult)
   declare serpResults: HasMany<typeof SerpResult>
+
+  @hasOne(() => SerpAnalysis)
+  declare serpAnalysis: HasOne<typeof SerpAnalysis>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

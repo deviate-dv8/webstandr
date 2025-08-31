@@ -10,6 +10,8 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    this.schema.dropTable(this.tableName)
+    this.schema.table(this.tableName, (table) => {
+      table.dropUnique(['url', 'user_id'])
+    })
   }
 }

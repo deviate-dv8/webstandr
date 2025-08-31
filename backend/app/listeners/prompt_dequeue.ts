@@ -1,5 +1,5 @@
 import PromptDeleted from '#events/prompt_deleted'
-import { SERPQueue, worker } from '#start/queue'
+import { SERPQueue } from '#start/queue'
 import { inject } from '@adonisjs/core'
 import { Logger } from '@adonisjs/core/logger'
 

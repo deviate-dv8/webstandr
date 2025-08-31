@@ -8,12 +8,12 @@ export default class PromptQueue {
   constructor(private readonly logger: Logger) {}
   async handle(promptCreated: PromptCreated) {
     const prompt = promptCreated.prompt
-
+    const website = promptCreated.website
     await SERPQueue.upsertJobScheduler(
       prompt.id,
       { pattern: scheduleToCron(prompt.schedule) },
       {
-        data: { prompt },
+        data: { prompt, website },
       }
     )
     this.logger.info(`Scheduled SERP job for prompt: ${prompt.id}`)

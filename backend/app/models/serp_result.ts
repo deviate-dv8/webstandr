@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
 import SerpResponse from './serp_response.js'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { randomUUID } from 'node:crypto'
 
 export default class SerpResult extends BaseModel {
   @column({ isPrimary: true })
@@ -33,5 +34,9 @@ export default class SerpResult extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
-}
 
+  @beforeCreate()
+  static assignUuid(serpResult: SerpResult) {
+    serpResult.id = randomUUID()
+  }
+}

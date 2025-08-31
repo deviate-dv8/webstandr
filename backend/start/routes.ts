@@ -64,10 +64,13 @@ router
       .resource('users', UsersController)
       .apiOnly()
       .use(['index', 'store', 'update', 'destroy'], middleware.allow_development())
-    router
-      .resource('websites', WebsitesController)
-      .apiOnly()
-      .use('*', middleware.auth({ guards: ['api'] }))
+    router.group(() => {
+      router.post('websites/verify', [WebsitesController, 'checkWebsite'])
+      router
+        .resource('websites', WebsitesController)
+        .apiOnly()
+        .use('*', middleware.auth({ guards: ['api'] }))
+    })
     router
       .resource('prompts', PromptsController)
       .apiOnly()
