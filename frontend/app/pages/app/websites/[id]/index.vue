@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import z from 'zod';
 import type { Website } from '~/types/website';
+import type { WebsiteInsight } from '~/types/websiteInsight';
 definePageMeta({
 	layout: 'app-layout',
 	middleware: ['sidebase-auth'],
@@ -11,10 +12,12 @@ const { id } = useRoute().params
 
 interface UserWebsiteInfo extends Website {
 	promptCount: number;
-	prompts: [];
+	websiteInsightCount: number;
+	websiteInsights: WebsiteInsight[];
+	prompts: Prompt[];
 }
 
-const { data: website, error, status, refresh } = await useFetch<Website>(`${API}/api/websites/${id}`, {
+const { data: website, error, status, refresh } = await useFetch<UserWebsiteInfo>(`${API}/api/websites/${id}`, {
 	headers: {
 		'Authorization': `${token.value}`
 	}
@@ -225,6 +228,20 @@ async function handlePromptRedirect(e: { data: Prompt }) {
 	const prompt = e.data
 	await navigateTo(`/app/prompts/${prompt.id}`)
 }
+function parseWebsiteUrl(website: string) {
+	if (!website.startsWith("http://") && !website.startsWith("https://")) {
+		return `https://${website}`;
+	}
+	return website;
+}
+function generatePageSpeedLink(website: string) {
+	const baseUrl = "https://pagespeed.web.dev/report?url=";
+	const parsedWebsite = parseWebsiteUrl(website);
+	return `${baseUrl}${encodeURIComponent(parsedWebsite)}`;
+}
+const websiteInsight = computed(() => {
+	return website.value?.websiteInsights ? website.value.websiteInsights[0] : null;
+})
 </script>
 <template>
 	<div>
@@ -279,7 +296,8 @@ async function handlePromptRedirect(e: { data: Prompt }) {
 		<section class="p-4 lg:p-8 border border-gray-300 rounded-xl">
 			<div class="flex gap-4 mb-12 justify-between">
 				<div class="flex gap-4">
-					<img :src="website?.icon" alt="Website Icon" class="object-contain h-16 w-16 lg:h-24 :w-24 rounded-xl">
+					<img :src="website?.icon" alt="Website Icon"
+						class="object-contain h-16 w-16 lg:h-24 lg:w-24 rounded-xl overflow-hidden">
 					<div class="flex flex-col gap-4">
 						<div class="flex gap-2 items-center flex-col lg:flex-row">
 							<h1 class="text-xl lg:text-2xl font-bold">{{ website?.name }}</h1>
@@ -320,27 +338,62 @@ async function handlePromptRedirect(e: { data: Prompt }) {
 				<div class="flex justify-between">
 					<p class="text text-gray-600 fond-medium">Total Prompts</p>
 					<p class="text-lg font-bold">
-						{{ (website as UserWebsiteInfo)?.promptCount ?? 0 }}
+						{{ website?.promptCount ?? 0 }}
 					</p>
 				</div>
 			</div>
 			<div class="border border-gray-300 rounded-xl p-4">
-				<h2 class="text-lg font-bold mb-4">SERP Results Stats</h2>
+				<h2 class="text-lg font-bold mb-4">SERP Stats</h2>
 				<div class="flex justify-between">
 					<p class="text text-gray-600 fond-medium">Total SERP Results</p>
 					<p class="text-lg font-bold">
-						{{ (website as UserWebsiteInfo)?.promptCount ?? 0 }}
+						{{ website?.promptCount ?? 0 }}
 					</p>
 				</div>
 			</div>
 			<div class="border border-gray-300 rounded-xl p-4">
-				<h2 class="text-lg font-bold mb-4">SERP Data Stats</h2>
-				<div class="flex justify-between">
-					<p class="text text-gray-600 fond-medium">Total Search Data</p>
-					<p class="text-lg font-bold">
-						{{ (website as UserWebsiteInfo)?.promptCount ?? 0 }}
-					</p>
+				<div class="flex justify-between items-center">
+					<h2 class="text-lg font-bold mb-4">Page Speed Insights Stats</h2>
+					<NuxtLink :to="generatePageSpeedLink(website?.url as string)" :external="true">
+						<Icon name="mdi:open-in-new" class="text-lg" />
+					</NuxtLink>
 				</div>
+				<div v-if="websiteInsight">
+					<div class="flex justify-between">
+						<p class="text text-gray-600 fond-medium">Total Insights</p>
+						<p class="text-lg font-bold">
+							{{ website?.websiteInsightCount }}
+						</p>
+					</div>
+					<div class="flex justify-between">
+						<p class="text text-gray-600 fond-medium">Performance</p>
+						<p class="text-lg font-bold">
+							{{ websiteInsight ? websiteInsight.performance : 0 }}
+						</p>
+					</div>
+					<div class="flex justify-between">
+						<p class="text text-gray-600 fond-medium">Accessibility</p>
+						<p class="text-lg font-bold">
+							{{ websiteInsight ? websiteInsight.accessibility : 0 }}
+						</p>
+					</div>
+					<div class="flex justify-between">
+						<p class="text text-gray-600 fond-medium">Best Practices</p>
+						<p class="text-lg font-bold">
+							{{ websiteInsight ? websiteInsight.bestPractices : 0 }}
+						</p>
+					</div>
+					<div class="flex justify-between">
+						<p class="text text-gray-600 fond-medium">SEO</p>
+						<p class="text-lg font-bold">
+							{{ websiteInsight ? websiteInsight.seo : 0 }}
+						</p>
+					</div>
+				</div>
+				<div v-else>
+					<p class="text-center text-sm text-gray-600">No Page Speed Insights data available yet.</p>
+				</div>
+
 			</div>
 		</section>
 		<Dialog v-model:visible="showCreatePrompt" modal header="Create Prompt" :style="{ width: '25rem' }">
@@ -376,7 +429,7 @@ async function handlePromptRedirect(e: { data: Prompt }) {
 				<h2 class="text-lg font-bold">Prompts</h2>
 				<Button label="Create" icon="pi pi-plus-circle" @click="showCreatePrompt = true" />
 			</div>
-			<DataTable :value="website?.prompts" @row-click="handlePromptRedirect" :row-hover="true">
+			<DataTable :value="website?.prompts" :row-hover="true" @row-click="handlePromptRedirect">
 				<Column v-for="column of columns" :key="column.field" :field="column.field" :header="column.header" />
 				<Column header="Actions">
 					<template #body="slotProps">

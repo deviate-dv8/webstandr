@@ -75,14 +75,15 @@ export default class WebsitesController {
       .where('id', params.id)
       .andWhere('userId', auth.user!.id)
       .preload('prompts')
-      .preload('websiteInsights', (query) => {
-        query.orderBy('createdAt', 'desc').limit(1)
-      })
+      .preload('websiteInsights', (query) => query.orderBy('createdAt', 'desc').limit(1))
+      .withCount('websiteInsights')
       .withCount('prompts')
       .firstOrFail()
+
     return {
       ...website.toJSON(),
       promptCount: Number.parseInt(website.$extras.prompts_count as string),
+      websiteInsightCount: Number.parseInt(website.$extras.websiteInsights_count as string),
     }
   }
 
