@@ -77,6 +77,7 @@ export class QueueService {
         await queue.removeJobScheduler(jobScheduler.id as string)
       }
     }
+    console.log('Finished scheduling SERP jobs')
   }
 
   async processSERPJob(job: Job) {
@@ -164,6 +165,7 @@ export class QueueService {
         await queue.removeJobScheduler(jobScheduler.id as string)
       }
     }
+    console.log('Finished scheduling Speed Insight jobs')
   }
   public async getWebsiteLastInsight(website: Website) {
     const url = website.url

@@ -11,8 +11,10 @@ const { token } = useAuth()
 const { id } = useRoute().params
 
 interface UserWebsiteInfo extends Website {
-	promptCount: number;
-	websiteInsightCount: number;
+	prompts_count: number;
+	websiteInsights_count: number;
+	serp_responses_count: number;
+	serp_results_count: number;
 	websiteInsights: WebsiteInsight[];
 	prompts: Prompt[];
 }
@@ -338,7 +340,7 @@ const websiteInsight = computed(() => {
 				<div class="flex justify-between">
 					<p class="text text-gray-600 fond-medium">Total Prompts</p>
 					<p class="text-lg font-bold">
-						{{ website?.promptCount ?? 0 }}
+						{{ website?.prompts_count ?? 0 }}
 					</p>
 				</div>
 			</div>
@@ -347,7 +349,13 @@ const websiteInsight = computed(() => {
 				<div class="flex justify-between">
 					<p class="text text-gray-600 fond-medium">Total SERP Results</p>
 					<p class="text-lg font-bold">
-						{{ website?.promptCount ?? 0 }}
+						{{ website?.serp_results_count ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">Total SERP Responses</p>
+					<p class="text-lg font-bold">
+						{{ website?.serp_responses_count ?? 0 }}
 					</p>
 				</div>
 			</div>
@@ -362,7 +370,7 @@ const websiteInsight = computed(() => {
 					<div class="flex justify-between">
 						<p class="text text-gray-600 fond-medium">Total Insights</p>
 						<p class="text-lg font-bold">
-							{{ website?.websiteInsightCount }}
+							{{ website?.websiteInsights_count }}
 						</p>
 					</div>
 					<div class="flex justify-between">

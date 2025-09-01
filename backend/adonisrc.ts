@@ -1,3 +1,4 @@
+import HttpLoggerMiddleware from '#middleware/http_logger_middleware'
 import { defineConfig } from '@adonisjs/core/app'
 
 export default defineConfig({

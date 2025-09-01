@@ -1,6 +1,7 @@
 import WebsiteCreated from '#events/website_created'
 import WebsiteDeleted from '#events/website_deleted'
-import Prompt from '#models/prompt'
+import SerpResponse from '#models/serp_response'
+import SerpResult from '#models/serp_result'
 import Website from '#models/website'
 import {
   checkWebsiteValidator,
@@ -79,11 +80,33 @@ export default class WebsitesController {
       .withCount('websiteInsights')
       .withCount('prompts')
       .firstOrFail()
+    const querySerpResponseCount = await SerpResponse.query()
+      .join('prompts', 'serp_responses.prompt_id', 'prompts.id')
+      .where('prompts.website_id', website.id)
+      .count('serp_responses.id as serpResponseCount')
+      .first()
+    const serp_responses_count = querySerpResponseCount
+      ? Number(querySerpResponseCount.$extras.serpResponseCount)
+      : 0
+    const querySerpResultCount = await SerpResult.query()
+      .join('serp_responses', 'serp_results.serp_response_id', 'serp_responses.id')
+      .join('prompts', 'serp_responses.prompt_id', 'prompts.id')
+      .where('prompts.website_id', website.id)
+      .count('serp_results.id as serpResultCount')
+      .first()
+    const serp_results_count = querySerpResultCount
+      ? Number(querySerpResultCount.$extras.serpResultCount)
+      : 0
 
+    console.log(website.$extras)
+    const numericExtras = Object.fromEntries(
+      Object.entries(website.$extras).map(([key, value]) => [key, Number(value)])
+    )
     return {
       ...website.toJSON(),
-      promptCount: Number.parseInt(website.$extras.prompts_count as string),
-      websiteInsightCount: Number.parseInt(website.$extras.websiteInsights_count as string),
+      ...numericExtras,
+      serp_responses_count,
+      serp_results_count,
     }
   }
 
