@@ -7,6 +7,7 @@ export interface Website {
   userId: number;
   icon: string;
   prompts?: Prompt[];
+  websiteInsights?: WebsiteInsight[];
   createdAt: Date;
   updatedAt: Date;
 }

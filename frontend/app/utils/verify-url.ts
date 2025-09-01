@@ -1,4 +1,4 @@
-import type { Website } from "~/types/websites";
+import type { Website } from "~/types/website";
 export default async function verifyUrl(
   url: string,
   token: string,

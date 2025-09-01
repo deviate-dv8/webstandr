@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import z from 'zod';
-import type { Website } from '~/types/websites';
+import type { Website } from '~/types/website';
 definePageMeta({
 	layout: 'app-layout',
 	middleware: ['sidebase-auth'],
