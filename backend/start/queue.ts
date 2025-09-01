@@ -32,5 +32,8 @@ speedInsightWorker.on('completed', (job) => {
 speedInsightWorker.on('failed', (job, err) => {
   console.error(`Job failed<SpeedInsightWorker>: ${job!.id}, Error: ${err.message}`)
 })
-queueService.scheduleSERPJobs(SERPQueue)
-queueService.scheduleSpeedInsightJobs(SpeedInsightQueue)
+await setTimeout(() => {
+  console.log('Scheduling SERP and Speed Insight Jobs...')
+  queueService.scheduleSERPJobs(SERPQueue)
+  queueService.scheduleSpeedInsightJobs(SpeedInsightQueue)
+}, 10000)
