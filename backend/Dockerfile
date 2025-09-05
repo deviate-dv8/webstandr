@@ -26,5 +26,6 @@ WORKDIR /app
 COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app
 EXPOSE 8080
+RUN node ace migration:run --force
 
 CMD ["node", "./bin/server.js"]
