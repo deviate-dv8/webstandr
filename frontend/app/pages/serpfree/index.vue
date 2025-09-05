@@ -117,7 +117,7 @@ v-model="query" type="text"
 				</div>
 			</div>
 			<div v-if="result && !queryError" class="mt-8">
-				<h2 class="text-3xl font-bold mb-6 text-center text-gray-600">Search Results - {{ query }}</h2>
+				<h2 class="text-3xl font-bold mb-6 text-center text-gray-600">Search Results - {{ result.query }}</h2>
 				<div class="max-w-4xl mx-auto space-y-4">
 					<div
 v-for="item in result.results" :key="item.link"
