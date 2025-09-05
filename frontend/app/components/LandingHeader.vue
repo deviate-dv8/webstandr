@@ -24,6 +24,11 @@ const showDrawer = ref(false);
 						<div class="bg-white flex flex-col text-lg font-bold">
 							<NuxtLink
 								class="my-2 text-gray-700 transition-colors duration-300 transform hover:text-orange-500 md:mx-4 md:my-0"
+								href="/serpfree">
+								SerpFree
+							</NuxtLink>
+							<NuxtLink
+								class="my-2 text-gray-700 transition-colors duration-300 transform hover:text-orange-500 md:mx-4 md:my-0"
 								href="/about">
 								About
 							</NuxtLink>
@@ -38,6 +43,11 @@ const showDrawer = ref(false);
 				<div
 					class="hidden md:block absolute inset-x-0 z-20 w-full px-6 py-4 bg-white md:bg-transparent md:mt-0 md:p-0 md:top-0 md:relative md:w-auto md:flex md:items-center">
 					<div class="flex flex-col md:flex-row md:mx-6">
+						<NuxtLink
+							class="my-2 text-gray-700 transition-colors duration-300 transform hover:text-orange-500 md:mx-4 md:my-0"
+							href="/serpfree">
+							SerpFree
+						</NuxtLink>
 						<NuxtLink
 							class="my-2 text-gray-700 transition-colors duration-300 transform hover:text-orange-500 md:mx-4 md:my-0"
 							href="/about">
