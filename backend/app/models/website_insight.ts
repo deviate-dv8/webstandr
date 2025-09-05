@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 
 export default class WebsiteInsight extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
 
   @column()
   declare performance: number
