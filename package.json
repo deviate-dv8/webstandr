@@ -6,10 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "frontend": "npm run dev --workspace frontend",
-    "backend": "npm run dev --workspace backend",
-    "backend-full":"concurrently \"npm run dev --workspace backend\" \"npm run dev --workspace scraper-backend\"",
+    "backend": "npm --prefix ./backend run dev",
+    "backend-full": "concurrently \"npm --prefix ./backend run dev\" \"npm run dev --workspace scraper-backend\"",
     "dev": "concurrently \"npm run frontend\" \"npm run backend\" \"npm run serp\"",
-    "serp":"npm run dev --workspace scraper-backend"
+    "serp": "npm run dev --workspace scraper-backend"
   },
   "repository": {
     "type": "git",
@@ -23,10 +23,9 @@
     "url": "https://github.com/deviate-dv8/webstandr/issues"
   },
   "homepage": "https://github.com/deviate-dv8/webstandr#readme",
-  "private":true,
-  "workspaces":[
-  "frontend",
-  "scraper-backend",
-  "backend"
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "scraper-backend"
   ]
 }
