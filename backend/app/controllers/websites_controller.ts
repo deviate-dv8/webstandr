@@ -3,6 +3,7 @@ import WebsiteDeleted from '#events/website_deleted'
 import SerpResponse from '#models/serp_response'
 import SerpResult from '#models/serp_result'
 import Website from '#models/website'
+import db from '@adonisjs/lucid/services/db'
 import {
   checkWebsiteValidator,
   createWebsiteValidator,
@@ -11,7 +12,8 @@ import {
   validateUrl,
 } from '#validators/website'
 import type { HttpContext } from '@adonisjs/core/http'
-
+import Prompt from '#models/prompt'
+import SerpAnalysis from '#models/serp_analysis'
 export default class WebsitesController {
   /**
    * Display a list of resource
@@ -85,7 +87,7 @@ export default class WebsitesController {
       .where('prompts.website_id', website.id)
       .count('serp_responses.id as serpResponseCount')
       .first()
-    const serp_responses_count = querySerpResponseCount
+    const serpResponsesCount = querySerpResponseCount
       ? Number(querySerpResponseCount.$extras.serpResponseCount)
       : 0
     const querySerpResultCount = await SerpResult.query()
@@ -94,19 +96,43 @@ export default class WebsitesController {
       .where('prompts.website_id', website.id)
       .count('serp_results.id as serpResultCount')
       .first()
-    const serp_results_count = querySerpResultCount
+    const serpResultsCount = querySerpResultCount
       ? Number(querySerpResultCount.$extras.serpResultCount)
       : 0
-
-    console.log(website.$extras)
+    const querySerpAnalysisCount = await SerpAnalysis.query()
+      .join('serp_responses', 'serp_analyses.serp_response_id', 'serp_responses.id')
+      .join('prompts', 'serp_responses.prompt_id', 'prompts.id')
+      .where('prompts.website_id', website.id)
+      .count('serp_analyses.id as serpAnalysisCount')
+      .first()
+    const serpAnalysesCount = querySerpAnalysisCount
+      ? Number(querySerpAnalysisCount.$extras.serpAnalysisCount)
+      : 0
     const numericExtras = Object.fromEntries(
       Object.entries(website.$extras).map(([key, value]) => [key, Number(value)])
     )
+    const providerCounts = await db
+      .from('prompts')
+      .select('provider')
+      .where('website_id', website.id)
+      .count('* as count')
+      .groupBy('provider')
+    let promptsProvider: { [key in Prompt['provider']]: number } = {
+      google: 0,
+      bing: 0,
+      duckduckgo: 0,
+      yahoo: 0,
+    }
+    providerCounts.forEach((item) => {
+      promptsProvider[item.provider as Prompt['provider']] = Number(item.count)
+    })
     return {
       ...website.toJSON(),
       ...numericExtras,
-      serp_responses_count,
-      serp_results_count,
+      serp_analyses_count: serpAnalysesCount,
+      serp_responses_count: serpResponsesCount,
+      serp_results_count: serpResultsCount,
+      prompts_providers: promptsProvider,
     }
   }
 

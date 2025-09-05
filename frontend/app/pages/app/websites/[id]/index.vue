@@ -15,8 +15,10 @@ interface UserWebsiteInfo extends Website {
 	websiteInsights_count: number;
 	serp_responses_count: number;
 	serp_results_count: number;
+	serp_analyses_count: number;
 	websiteInsights: WebsiteInsight[];
 	prompts: Prompt[];
+	prompts_providers: { [key in Prompt['provider']]: number };
 }
 
 const { data: website, error, status, refresh } = await useFetch<UserWebsiteInfo>(`${API}/api/websites/${id}`, {
@@ -343,19 +345,49 @@ const websiteInsight = computed(() => {
 						{{ website?.prompts_count ?? 0 }}
 					</p>
 				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">Google</p>
+					<p class="text-lg font-bold">
+						{{ website?.prompts_providers.google ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">Bing</p>
+					<p class="text-lg font-bold">
+						{{ website?.prompts_providers.bing ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">Yahoo</p>
+					<p class="text-lg font-bold">
+						{{ website?.prompts_providers.yahoo ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">DuckDuckGo</p>
+					<p class="text-lg font-bold">
+						{{ website?.prompts_providers.duckduckgo ?? 0 }}
+					</p>
+				</div>
 			</div>
 			<div class="border border-gray-300 rounded-xl p-4">
 				<h2 class="text-lg font-bold mb-4">SERP Stats</h2>
 				<div class="flex justify-between">
-					<p class="text text-gray-600 fond-medium">Total SERP Results</p>
+					<p class="text text-gray-600 fond-medium">SERP Results</p>
 					<p class="text-lg font-bold">
 						{{ website?.serp_results_count ?? 0 }}
 					</p>
 				</div>
 				<div class="flex justify-between">
-					<p class="text text-gray-600 fond-medium">Total SERP Responses</p>
+					<p class="text text-gray-600 fond-medium">SERP Responses</p>
 					<p class="text-lg font-bold">
 						{{ website?.serp_responses_count ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">SERP Analysis</p>
+					<p class="text-lg font-bold">
+						{{ website?.serp_analyses_count ?? 0 }}
 					</p>
 				</div>
 			</div>
