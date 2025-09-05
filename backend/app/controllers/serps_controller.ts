@@ -20,14 +20,16 @@ export interface SERPResponse {
 }
 export default class SerpsController {
   async search({ request, response }: HttpContext) {
-    const { provider, query } = await request.validateUsing(searchValidator)
+    const payload = await request.validateUsing(searchValidator)
+    if (!payload.provider) {
+      payload.provider = 'google'
+    }
     const SERPGOOGLE = env.get('SERP_GOOGLE')
     const SERPBASE = env.get('SERP_BASE')
-    const API = provider === 'google' ? SERPGOOGLE : SERPBASE
+    const API = payload.provider === 'google' ? SERPGOOGLE : SERPBASE
     try {
       const { data } = await axios.post(`${API}/api/serp/search`, {
-        provider,
-        query,
+        ...payload,
       })
       return data
     } catch (error) {

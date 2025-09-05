@@ -77,7 +77,7 @@ router
       .use('*', middleware.auth({ guards: ['api'] }))
     router
       .group(() => {
-        router.post('search', [SerpsController, 'search'])
+        router.post('search', [SerpsController, 'search']).use(throttle)
         router.post('favicon', [SerpsController, 'getFavicon'])
       })
       .use(throttle)
