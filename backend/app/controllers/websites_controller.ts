@@ -126,6 +126,18 @@ export default class WebsitesController {
     providerCounts.forEach((item) => {
       promptsProvider[item.provider as Prompt['provider']] = Number(item.count)
     })
+    const latestSerpAnalyses = await SerpAnalysis.query()
+      .select('serp_analyses.*')
+      .join('serp_responses', 'serp_analyses.serp_response_id', 'serp_responses.id')
+      .join('prompts', 'serp_responses.prompt_id', 'prompts.id')
+      .where('prompts.website_id', website.id)
+      .distinctOn('prompts.provider')
+      .orderBy('prompts.provider', 'asc')
+      .orderBy('serp_analyses.created_at', 'desc')
+      .preload('serpResponse', (query) => {
+        query.preload('prompt')
+      })
+
     return {
       ...website.toJSON(),
       ...numericExtras,
@@ -133,6 +145,7 @@ export default class WebsitesController {
       serp_responses_count: serpResponsesCount,
       serp_results_count: serpResultsCount,
       prompts_providers: promptsProvider,
+      latest_serp_analyses: latestSerpAnalyses,
     }
   }
 
