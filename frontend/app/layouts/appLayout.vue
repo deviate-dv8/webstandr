@@ -1,11 +1,28 @@
 <script setup lang="ts">
-
 const showDashboard = ref(true)
 const showDashboardMobile = ref(false)
+const { data } = useAuth()
+const userData = data.value as UserData;
+const toast = useToast()
+function showToast() {
+	toast.add({
+		severity: 'warn',
+		summary: 'Email not verified',
+		detail: 'Please verify your email address to access all features.',
+		closable: true,
+		group: 'app'
+	});
+}
+onMounted(() => {
+	if (userData && !userData.emailVerifiedAt) {
+		showToast();
+	}
+});
 </script>
 <template>
 	<main class="relative min-h-screen flex flex-col">
-		<DashboardAppHeader class="sticky top-0 z-50" @toggle-desktop="() => { showDashboard = !showDashboard }"
+		<DashboardAppHeader
+class="sticky top-0 z-50" @toggle-desktop="() => { showDashboard = !showDashboard }"
 			@toggle-mobile="() => { showDashboardMobile = !showDashboardMobile }" />
 		<div class="relative flex-1 flex">
 			<!-- Mobile Navbar -->

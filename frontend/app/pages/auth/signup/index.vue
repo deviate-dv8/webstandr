@@ -40,12 +40,12 @@ async function signUpHandler() {
 		toast.add({
 			severity: 'success',
 			detail: 'Sign up successful! Please check your email to verify your account.',
-			life: 3000,
+			life: 10000,
 			summary: 'Signing up...',
 		})
 		setTimeout(() => {
 			useRouter().push('/auth/login');
-		}, 3000)
+		}, 1000)
 	}
 	catch (error) {
 		const err = error as SignUpError;

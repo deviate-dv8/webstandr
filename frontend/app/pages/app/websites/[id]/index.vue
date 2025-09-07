@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import z from 'zod';
+import type { SerpResponse } from '~/types/serpResponse';
 import type { Website } from '~/types/website';
 import type { WebsiteInsight } from '~/types/websiteInsight';
 definePageMeta({
@@ -10,6 +11,14 @@ const API = useRuntimeConfig().public.API_URL
 const { token } = useAuth()
 const { id } = useRoute().params
 
+
+interface SerpResponseExtended extends SerpResponse {
+	prompt: Prompt
+}
+interface SerpAnalysisExtended extends SerpAnalysis {
+	serpResponse: SerpResponseExtended
+}
+
 interface UserWebsiteInfo extends Website {
 	prompts_count: number;
 	websiteInsights_count: number;
@@ -19,6 +28,7 @@ interface UserWebsiteInfo extends Website {
 	websiteInsights: WebsiteInsight[];
 	prompts: Prompt[];
 	prompts_providers: { [key in Prompt['provider']]: number };
+	latest_serp_analyses: SerpAnalysisExtended[];
 }
 
 const { data: website, error, status, refresh } = await useFetch<UserWebsiteInfo>(`${API}/api/websites/${id}`, {
