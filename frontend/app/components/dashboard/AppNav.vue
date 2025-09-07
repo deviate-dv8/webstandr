@@ -9,12 +9,19 @@
 
 			<span class="mx-4 font-medium">Dashboard</span>
 		</NuxtLink>
-
-		<NuxtLink to="/app/websites"
+		<NuxtLink
+to="/app/websites"
 			class="flex items-center px-4 py-2 mt-5 text-gray-600 transition-colors duration-300 transform rounded-lg hover:bg-orange-100 hover:text-orange-700"
 			:class="{ 'router-link-active': $route.path.startsWith('/app/websites') }">
 			<Icon name="mdi:web" class="shrink-0 text-xl" />
 			<span class="mx-4 font-medium">Websites</span>
+		</NuxtLink>
+		<NuxtLink
+to="/app/settings"
+			class="flex items-center px-4 py-2 mt-5 text-gray-600 transition-colors duration-300 transform rounded-lg hover:bg-orange-100 hover:text-orange-700"
+			:class="{ 'router-link-active': $route.path.startsWith('/app/settings') }">
+			<Icon name="lets-icons:setting-alt-fill" class="shrink-0 text-xl" />
+			<span class="mx-4 font-medium">Settings</span>
 		</NuxtLink>
 	</nav>
 </template>
