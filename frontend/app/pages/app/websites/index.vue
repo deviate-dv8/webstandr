@@ -64,6 +64,7 @@ const loadingCreateWebsite = ref(false)
 const loadingVerifyWebsite = ref(false)
 const uniqueUrl = ref<null | boolean>(null);
 const websiteExist = ref<null | boolean>(null);
+const createWebsiteErr = ref("")
 watchDebounced(url, async (newValue) => {
 	if (newValue == "") {
 		icon.value = "";
@@ -76,6 +77,7 @@ watchDebounced(url, async (newValue) => {
 	])
 }, { debounce: 500 });
 async function createWebsite() {
+	createWebsiteErr.value = ""
 	const isValid = meta.value.valid;
 	if (loadingVerifyUrl.value || loadingFavicon.value || loadingVerifyWebsite.value) return;
 	if (!isValid) return;
@@ -91,7 +93,16 @@ async function createWebsite() {
 		await refresh()
 	}
 	catch (e) {
-		console.log(e);
+		if (e instanceof Error) {
+			const err = e as { data?: { message: string } }
+			const errData = err?.data
+			if (errData) {
+				createWebsiteErr.value = errData.message
+			}
+		}
+		else {
+			createWebsiteErr.value = "An unknown error occurred"
+		}
 		return;
 	}
 }
@@ -144,6 +155,7 @@ v-model="type" v-bind="typeAttrs" :options="['personal', 'competitor']" placehol
 					<p class="text-sm text-red-500">{{ errors.type }}</p>
 				</div>
 			</form>
+			<p class="text-sm text-red-500 text-center my-2">{{ createWebsiteErr }}</p>
 			<template #footer>
 				<Button variant="outlined" severity="secondary" @click="showCreateWebsite = false, resetForm()">Close</Button>
 				<Button :loading="loadingCreateWebsite" label="Create" @click="handleSubmit" />
