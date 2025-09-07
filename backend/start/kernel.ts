@@ -27,7 +27,7 @@ server.use([
   () => import('#middleware/force_json_response_middleware'),
   () => import('@adonisjs/cors/cors_middleware'),
   () => import('#middleware/http_logger_middleware'),
-  () => import('@adonisjs/static/static_middleware')
+  () => import('@adonisjs/static/static_middleware'),
 ])
 
 /**
@@ -46,4 +46,5 @@ router.use([
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
   allow_development: () => import('#middleware/allow_development_middleware'),
+  isVerified: () => import('#middleware/is_verified_middleware'),
 })

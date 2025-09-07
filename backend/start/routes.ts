@@ -70,11 +70,13 @@ router
         .resource('websites', WebsitesController)
         .apiOnly()
         .use('*', middleware.auth({ guards: ['api'] }))
+        .use(['store', 'update', 'destroy'], middleware.isVerified())
     })
     router
       .resource('prompts', PromptsController)
       .apiOnly()
       .use('*', middleware.auth({ guards: ['api'] }))
+      .use(['store', 'update', 'destroy'], middleware.isVerified())
     router
       .group(() => {
         router.post('search', [SerpsController, 'search']).use(throttle)
