@@ -270,56 +270,48 @@ const websiteInsight = computed(() => {
 <template>
 	<div>
 		<ConfirmDialog />
-		<Dialog v-model:visible="showEditWebsite" header="Edit Website" :style="{ width: '25rem' }">
+		<Dialog v-model:visible="showEditWebsite" header="Edit Website" :style="{ width: '25rem' }" modal>
 			<form action="" class="flex flex-col gap-4 " novalidate @submit.prevent="">
 				<div class="flex justify-center">
-					<div
-class="h-12 w-12 border-gray-300 rounded-xl" :class="{
+					<div class="h-12 w-12 border-gray-300 rounded-xl" :class="{
 						'border': !iconUW,
 					}">
 						<img v-if="iconUW" :src="iconUW" alt="Website Icon" class="h-full w-full object-cover rounded-xl">
 					</div>
 				</div>
 				<div class="w-full">
-					<InputText
-v-model="nameUW" v-bind="nameAttrsUW" type="text" :placeholder="`Name - ${website?.name}`"
+					<InputText v-model="nameUW" v-bind="nameAttrsUW" type="text" :placeholder="`Name - ${website?.name}`"
 						class='w-full' />
 					<p class="text-sm text-red-500">{{ errorsUW.name }}</p>
 				</div>
 				<div class="w-full">
-					<InputText
-v-model="descriptionUW" v-bind="descriptionAttrsUW" type="text"
+					<InputText v-model="descriptionUW" v-bind="descriptionAttrsUW" type="text"
 						:placeholder="`Description - ${website?.description}`" class='w-full' />
 					<p class="text-sm text-red-500">{{ errorsUW.description }}</p>
 				</div>
 				<div class="w-full relative">
-					<InputText
-v-model="urlUW" v-bind="urlAttrsUW" type="text" :placeholder="`URL - ${website?.url}`"
+					<InputText v-model="urlUW" v-bind="urlAttrsUW" type="text" :placeholder="`URL - ${website?.url}`"
 						class="w-full" />
 					<Icon v-if="loadingVerifyUrl" name="line-md:loading-loop" class="absolute top-3 right-4" />
-					<Icon
-v-if="!loadingVerifyUrl && uniqueUrl" name="material-symbols:check"
+					<Icon v-if="!loadingVerifyUrl && uniqueUrl" name="material-symbols:check"
 						class="text-green-500 absolute top-3 right-4" />
 					<p class="text-sm text-red-500">{{ errorsUW.url }}</p>
 				</div>
 				<div class="relative w-full">
-					<InputText
-v-model="iconUW" v-bind="iconAttrsUW" type="text" :placeholder="`Icon URL - ${website?.icon}`"
+					<InputText v-model="iconUW" v-bind="iconAttrsUW" type="text" :placeholder="`Icon URL - ${website?.icon}`"
 						class="w-full" />
 					<Icon v-if="loadingFavicon" name="line-md:loading-loop" class="absolute top-3 right-4" />
 					<p class="text-sm text-red-500">{{ errorsUW.icon }}</p>
 				</div>
 				<div class="w-full">
-					<Dropdown
-v-model="typeUW" v-bind="typeAttrsUW" :options="['personal', 'competitor']" placeholder="Type"
+					<Dropdown v-model="typeUW" v-bind="typeAttrsUW" :options="['personal', 'competitor']" placeholder="Type"
 						class="w-full" />
 					<p class="text-sm text-red-500">{{ errorsUW.type }}</p>
 				</div>
 				<p v-if="editResponseError" class="text-sm text-red-500 text-center">{{ editResponseError }}</p>
 			</form>
 			<template #footer>
-				<Button
-type="button" variant="outlined" label="Cancel" severity="secondary"
+				<Button type="button" variant="outlined" label="Cancel" severity="secondary"
 					@click="showEditWebsite = false, resetFormUW()" />
 				<Button type="button" label="Save" @click="handleSubmitEdit" />
 			</template>
@@ -328,27 +320,23 @@ type="button" variant="outlined" label="Cancel" severity="secondary"
 		<section class="p-4 lg:p-8 border border-gray-300 rounded-xl">
 			<div class="flex gap-4 mb-12 justify-between">
 				<div class="flex gap-4">
-					<img
-:src="website?.icon" alt="Website Icon"
+					<img :src="website?.icon" alt="Website Icon"
 						class="object-contain h-16 w-16 lg:h-24 lg:w-24 rounded-xl overflow-hidden">
 					<div class="flex flex-col gap-4">
 						<div class="flex gap-2 items-center flex-col lg:flex-row">
 							<h1 class="text-xl lg:text-2xl font-bold">{{ website?.name }}</h1>
-							<div
-class="py-1 px-2 rounded-xl flex gap-2 items-center justify-center" :class="{
+							<div class="py-1 px-2 rounded-xl flex gap-2 items-center justify-center" :class="{
 								'bg-green-100 text-green-600': website?.type == 'personal',
 								'bg-orange-100 text-red-600': website?.type == 'competitor'
 							}">
-								<Icon
-:name="(website?.type == 'personal') ? 'flowbite:user-outline' : 'hugeicons:corporate'"
+								<Icon :name="(website?.type == 'personal') ? 'flowbite:user-outline' : 'hugeicons:corporate'"
 									class="text-lg" />
 								<p>
 									{{ website?.type }}
 								</p>
 							</div>
 						</div>
-						<NuxtLink
-:to="getValidUrl(website?.url as string)"
+						<NuxtLink :to="getValidUrl(website?.url as string)"
 							class="flex gap-2 items-center text-gray-500 hover:text-gray-700 duration-300">
 							<Icon name="mdi:web" class="text-lg" />
 							<p>
@@ -479,22 +467,19 @@ class="py-1 px-2 rounded-xl flex gap-2 items-center justify-center" :class="{
 					<p class="text-sm text-red-500">{{ errorsCP.query }}</p>
 				</div>
 				<div class="w-full">
-					<Dropdown
-v-model="providerCP" v-bind="providerAttrsCP" :options="['google', 'bing', 'yahoo', 'duckduckgo']"
+					<Dropdown v-model="providerCP" v-bind="providerAttrsCP" :options="['google', 'bing', 'yahoo', 'duckduckgo']"
 						placeholder="Provider" class="w-full" />
 					<p class="text-sm text-red-500">{{ errorsCP.provider }}</p>
 				</div>
 				<div class="w-full">
-					<Dropdown
-v-model="scheduleCP" v-bind="scheduleAttrsCP" :options="['daily', 'weekly', 'monthly', 'annually']"
+					<Dropdown v-model="scheduleCP" v-bind="scheduleAttrsCP" :options="['daily', 'weekly', 'monthly', 'annually']"
 						placeholder="Schedule" class="w-full" />
 					<p class="text-sm text-red-500">{{ errorsCP.provider }}</p>
 				</div>
 				<p v-if="createPromptResponseError" class="text-sm text-red-500 text-center">{{ createPromptResponseError }}</p>
 			</form>
 			<template #footer>
-				<Button
-type="button" variant="outlined" label="Cancel" severity="secondary"
+				<Button type="button" variant="outlined" label="Cancel" severity="secondary"
 					@click="showCreatePrompt = false, resetFormCP()" />
 				<Button type="button" label="Save" @click="handleSubmitCreatePrompt" />
 			</template>
