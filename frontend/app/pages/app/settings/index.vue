@@ -20,6 +20,7 @@ async function resendEmailVerification() {
 					severity: 'success',
 					summary: 'Success',
 					detail: 'Verification email sent successfully.',
+					life: 10000,
 					closable: true,
 				});
 			} else {
