@@ -3,7 +3,6 @@ import WebsiteDeleted from '#events/website_deleted'
 import SerpResponse from '#models/serp_response'
 import SerpResult from '#models/serp_result'
 import Website from '#models/website'
-import db from '@adonisjs/lucid/services/db'
 import {
   checkWebsiteValidator,
   createWebsiteValidator,
