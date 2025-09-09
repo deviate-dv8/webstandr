@@ -20,6 +20,10 @@ export default class PromptQueue {
         data: { prompt, website },
       }
     )
+    const { serpResponsePayload, serpResultsPayload, analysis } =
+      await this.queueService.fetchSERPData(prompt, website)
+
+    await this.queueService.saveToDB(serpResponsePayload, serpResultsPayload, analysis)
     this.logger.info(`Scheduled SERP job for prompt: ${prompt.id}`)
   }
 }

@@ -80,17 +80,18 @@ export class QueueService {
     console.log('Finished scheduling SERP jobs')
   }
 
-  async processSERPJob(job: Job) {
-    const { prompt, website }: { prompt: Prompt; website: Website } = job.data
+  async fetchSERPData(prompt: Prompt, website: Website) {
     const { provider, query } = prompt
     const SERPGOOGLE = env.get('SERP_GOOGLE')
     const SERPBASE = env.get('SERP_BASE')
     const API = provider === 'google' ? SERPGOOGLE : SERPBASE
+
     try {
       const { data } = await axios.post<SerpResponseType>(`${API}/api/serp/search`, {
         provider,
         query,
       })
+
       const analysis: {
         averageRank: number | null
         highestRank: number | null
@@ -100,50 +101,78 @@ export class QueueService {
         highestRank: null,
         frequency: 0,
       }
+
       const targetDomain = website.url
       const ranks = data.results
         .filter((result) => result.domain.includes(targetDomain))
         .map((result) => result.rank)
+
       if (ranks.length > 0) {
         analysis.frequency = ranks.length
         analysis.highestRank = Math.min(...ranks)
         analysis.averageRank = Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length)
       }
+
       const { results: serpResultsPayload, createdAt, updatedAt, ...serpResponsePayload } = data
-      const parsedSerpResponsePayload = {
-        ...serpResponsePayload,
-        promptId: prompt.id,
+
+      return {
+        serpResponsePayload: {
+          ...serpResponsePayload,
+          promptId: prompt.id,
+        },
+        serpResultsPayload,
+        analysis,
       }
-      const trx = await db.transaction()
-      try {
-        const serpResponse = await SerpResponse.create(parsedSerpResponsePayload, { client: trx })
-        const serpAnalysisPayload = { ...analysis, serpResponseId: serpResponse.id }
-        const parsedSerpResultsPayload: (SerpResultType & { serpResponseId: string })[] =
-          serpResultsPayload.map((result) => ({
-            ...result,
-            serpResponseId: serpResponse.id,
-          }))
-        await SerpAnalysis.create(serpAnalysisPayload, { client: trx })
-        await SerpResult.createMany(parsedSerpResultsPayload, { client: trx })
-        await trx.commit()
-      } catch (err) {
-        console.log('Transaction failed, rolling back.')
-        await trx.rollback()
-        throw new Error('Transaction failed, rolling back.')
-      }
-      return data
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data
-        if (data) {
-          data
-        }
         throw new Error(
           `An error occurred while fetching SERP results: ${data?.message || 'Unknown error'}`
         )
       }
+      throw error
     }
-    console.log(`Processing SERP job for prompt: ${prompt.id}`)
+  }
+
+  async saveToDB(
+    serpResponsePayload: any,
+    serpResultsPayload: any[],
+    analysis: any
+  ): Promise<void> {
+    const trx = await db.transaction()
+    try {
+      const serpResponse = await SerpResponse.create(serpResponsePayload, { client: trx })
+      const serpAnalysisPayload = { ...analysis, serpResponseId: serpResponse.id }
+      const parsedSerpResultsPayload: (SerpResultType & { serpResponseId: string })[] =
+        serpResultsPayload.map((result) => ({
+          ...result,
+          serpResponseId: serpResponse.id,
+        }))
+
+      await SerpAnalysis.create(serpAnalysisPayload, { client: trx })
+      await SerpResult.createMany(parsedSerpResultsPayload, { client: trx })
+      await trx.commit()
+    } catch (err) {
+      console.log('Transaction failed, rolling back.')
+      await trx.rollback()
+      throw new Error('Transaction failed, rolling back.')
+    }
+  }
+
+  async processSERPJob(job: Job) {
+    const { prompt, website }: { prompt: Prompt; website: Website } = job.data
+
+    try {
+      const { serpResponsePayload, serpResultsPayload, analysis } = await this.fetchSERPData(
+        prompt,
+        website
+      )
+
+      await this.saveToDB(serpResponsePayload, serpResultsPayload, analysis)
+    } catch (error) {
+      console.error(`Error processing SERP job for prompt: ${prompt.id}`, error)
+      throw error
+    }
   }
 
   async scheduleSpeedInsightJobs(queue: Queue) {

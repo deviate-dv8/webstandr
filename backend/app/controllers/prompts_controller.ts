@@ -11,6 +11,10 @@ export default class PromptsController {
    */
   async index({ auth }: HttpContext) {
     const prompts = await Prompt.query().where('userId', auth.user!.id).preload('website')
+    return prompts
+  }
+
+  async stats({ auth }: HttpContext) {
     const totalPromptQuery = await Prompt.query()
       .where('user_id', auth.user!.id)
       .count('* as total')
@@ -49,9 +53,8 @@ export default class PromptsController {
       const provider = item.provider as Prompt['provider']
       providers[provider] = Number.parseInt(item.$extras.count)
     })
-    return { prompts, totalPrompts, schedules, providers }
+    return { totalPrompts, schedules, providers }
   }
-
   /**
    * Handle form submission for the create action
    */
