@@ -45,7 +45,7 @@ async function signUpHandler() {
 		})
 		setTimeout(() => {
 			useRouter().push('/auth/login');
-		}, 1000)
+		}, 10000)
 	}
 	catch (error) {
 		const err = error as SignUpError;
