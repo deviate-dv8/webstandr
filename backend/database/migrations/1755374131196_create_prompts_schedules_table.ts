@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.table(this.tableName, (table) => {
-      table.enum('schedule', ['daily', 'weekly', 'montly', 'annually']).defaultTo('daily')
+      table.enum('schedule', ['daily', 'weekly', 'monthly', 'annually']).defaultTo('daily')
     })
   }
 
