@@ -10,11 +10,6 @@ const loginCredentials = reactive({
 	username: '',
 	password: ''
 })
-interface signInError {
-	data?: {
-		message: string;
-	}
-}
 const validateEmail = z.object({
 	email: z.string().email()
 })
@@ -46,16 +41,10 @@ function loginHandler() {
 	}
 	signIn(parsedCredentials, { "callbackUrl": "/app" })
 		.then()
-		.catch((error: signInError) => {
+		.catch(() => {
 			// Handle login error
 			loginError.value = true;
-			if (error.data) {
-				loginErrorMessage.value = 'Invalid email/username or password.';
-			}
-			else {
-				// Fallback error message
-				loginErrorMessage.value = 'An unexpected error occurred. Please try again.';
-			}
+			loginErrorMessage.value = 'Invalid email/username or password.';
 		});
 }
 const loginError = ref(false);
@@ -71,20 +60,24 @@ const showPassword = ref(false);
 					<h3 class="mt-3 text-xl font-medium text-center text-gray-600">Login</h3>
 					<form>
 						<div class="w-full mt-4">
-							<input v-model="loginCredentials.emailOrUsername"
+							<input
+v-model="loginCredentials.emailOrUsername"
 								class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg focus:border-orange-400 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-orange-300"
 								type="text" placeholder="Username or Email" aria-label="Email Address">
 						</div>
 
 						<div class="w-full mt-4 relative">
-							<input v-model="loginCredentials.password"
+							<input
+v-model="loginCredentials.password"
 								class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg focus:border-orange-400 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-orange-300"
 								:type="showPassword ? 'text' : 'password'" placeholder="Password" aria-label="Password">
-							<button v-if="!showPassword" type="button" class="absolute right-4 top-3 hover:text-gray-500 duration-100"
+							<button
+v-if="!showPassword" type="button" class="absolute right-4 top-3 hover:text-gray-500 duration-100"
 								@click="showPassword = true">
 								<Icon name="weui:eyes-on-filled" class="text-xl" />
 							</button>
-							<button v-else type="button" class="absolute right-4 top-3 hover:text-gray-500 duration-100"
+							<button
+v-else type="button" class="absolute right-4 top-3 hover:text-gray-500 duration-100"
 								@click="showPassword = false">
 								<Icon name="weui:eyes-off-filled" class="text-xl" />
 							</button>
@@ -93,7 +86,8 @@ const showPassword = ref(false);
 							<NuxtLink to="/auth/forgot-password" class="text-sm text-gray-600 hover:text-gray-500">Forget Password?
 							</NuxtLink>
 
-							<button type="button"
+							<button
+type="button"
 								class="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-orange-500 rounded-lg hover:bg-orange-400 focus:outline-none focus:ring focus:ring-orange-300 focus:ring-opacity-50"
 								@click="loginHandler">
 								Login
