@@ -10,7 +10,46 @@ export default class PromptsController {
    * Display a list of resource
    */
   async index({ auth }: HttpContext) {
-    return Prompt.findManyBy('userId', auth.user!.id)
+    const prompts = await Prompt.query().where('userId', auth.user!.id).preload('website')
+    const totalPromptQuery = await Prompt.query()
+      .where('user_id', auth.user!.id)
+      .count('* as total')
+      .first()
+    const totalPrompts = totalPromptQuery ? Number.parseInt(totalPromptQuery.$extras.total) : 0
+
+    const scheduleCountQuery = await Prompt.query()
+      .where('userId', auth.user!.id)
+      .select('schedule')
+      .count('* as count')
+      .groupBy('schedule')
+    let schedules: { [key in Prompt['schedule']]?: number } = {
+      daily: 0,
+      weekly: 0,
+      monthly: 0,
+      annually: 0,
+    }
+    scheduleCountQuery.forEach((item) => {
+      const schedule = item.schedule as Prompt['schedule']
+      schedules[schedule] = Number.parseInt(item.$extras.count)
+    })
+
+    const providerCounts = await Prompt.query()
+      .join('websites', 'prompts.website_id', 'websites.id')
+      .select('provider')
+      .count('* as count')
+      .groupBy('provider')
+    let providers: { [key in Prompt['provider']]: number } = {
+      google: 0,
+      bing: 0,
+      duckduckgo: 0,
+      yahoo: 0,
+    }
+
+    providerCounts.forEach((item) => {
+      const provider = item.provider as Prompt['provider']
+      providers[provider] = Number.parseInt(item.$extras.count)
+    })
+    return { prompts, totalPrompts, schedules, providers }
   }
 
   /**

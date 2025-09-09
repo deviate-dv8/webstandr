@@ -111,8 +111,7 @@ export default class WebsitesController {
     const numericExtras = Object.fromEntries(
       Object.entries(website.$extras).map(([key, value]) => [key, Number(value)])
     )
-    const providerCounts = await db
-      .from('prompts')
+    const providerCounts = await Prompt.query()
       .select('provider')
       .where('website_id', website.id)
       .count('* as count')
@@ -123,8 +122,10 @@ export default class WebsitesController {
       duckduckgo: 0,
       yahoo: 0,
     }
+
     providerCounts.forEach((item) => {
-      promptsProvider[item.provider as Prompt['provider']] = Number(item.count)
+      const provider = item.provider as Prompt['provider']
+      promptsProvider[provider] = Number.parseInt(item.$extras.count)
     })
     const latestSerpAnalyses = await SerpAnalysis.query()
       .select('serp_analyses.*')
