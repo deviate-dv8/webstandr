@@ -181,26 +181,45 @@ export class QueueService {
     const allJobScheduler = await queue.getJobSchedulers()
 
     // Creates a job scheduler for each website
-    for (const website of websites) {
-      await queue.upsertJobScheduler(
-        website.id,
-        { pattern: this.scheduleToCron('daily') },
-        { data: { website } }
-      )
-    }
+    await Promise.all(
+      websites.map(async (website) => {
+        try {
+          await queue.upsertJobScheduler(
+            website.id,
+            { pattern: this.scheduleToCron('daily') },
+            { data: { website } }
+          )
+        } catch (error) {
+          console.error(`Failed to upsert job scheduler for website ${website.id}:`, error)
+        }
+      })
+    )
+
     // Remove job schedulers for websites that no longer exist
-    for (const jobScheduler of allJobScheduler) {
-      if (!websiteIds.includes(jobScheduler.id as string)) {
-        await queue.removeJobScheduler(jobScheduler.id as string)
-      }
-    }
+    await Promise.all(
+      allJobScheduler.map(async (jobScheduler) => {
+        if (!websiteIds.includes(jobScheduler.id as string)) {
+          try {
+            await queue.removeJobScheduler(jobScheduler.id as string)
+          } catch (error) {
+            console.error(`Failed to remove job scheduler ${jobScheduler.id}:`, error)
+          }
+        }
+      })
+    )
+
     console.log('Finished scheduling Speed Insight jobs')
   }
-  public async getWebsiteLastInsight(website: Website) {
-    const url = website.url
+  public async getWebsiteLastInsight(url: Website['url']) {
     const formattedUrl =
       url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`
-    new URL(formattedUrl) // Validate the formatted URL
+
+    try {
+      new URL(formattedUrl) // Validate the formatted URL
+    } catch {
+      throw new Error(`Invalid URL provided: ${url}`)
+    }
+
     try {
       const result = await axios.get<PSIResponseType>(
         'https://www.googleapis.com/pagespeedonline/v5/runPagespeed?category=performance&category=accessibility&category=best-practices&category=seo',
@@ -216,37 +235,44 @@ export class QueueService {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data
-        if (data) {
-          data
-        }
+        console.error('Error response from PageSpeed Insights API:', data)
         throw new Error(
           `An error occurred while fetching Speed Insight results: ${data?.message || 'Unknown error'}`
         )
       }
+      throw error
     }
   }
+
   async processSpeedInsightJob(job: Job) {
     const { website }: { website: Website } = job.data
-    const data = await this.getWebsiteLastInsight(website)
-    console.log(`Processing Speed Insight job for job id: ${job.id}`)
-    if (data) {
-      const payload = {
-        performance: Math.round((data.lighthouseResult.categories.performance.score || 0) * 100),
-        accessibility: Math.round(
-          (data.lighthouseResult.categories.accessibility.score || 0) * 100
-        ),
-        bestPractices: Math.round(
-          (data.lighthouseResult.categories['best-practices'].score || 0) * 100
-        ),
-        seo: Math.round((data.lighthouseResult.categories.seo.score || 0) * 100),
-        websiteId: website.id,
-      }
-      const newWebsiteInsight = await WebsiteInsight.create(payload)
-      console.log('Created new Website Insight: ', newWebsiteInsight.id)
-      return data
-    } else {
-      console.log('No data received from PageSpeed Insights API')
-      throw new Error('No data received from PageSpeed Insights API')
+
+    let data
+    try {
+      data = await this.getWebsiteLastInsight(website.url)
+    } catch (error) {
+      console.error(`Failed to fetch Speed Insight data for website ${website.id}:`, error)
+      throw error
     }
+
+    console.log(`Processing Speed Insight job for job id: ${job.id}:${website.url}`)
+
+    if (!data?.lighthouseResult?.categories) {
+      console.error('Invalid data received from PageSpeed Insights API')
+      throw new Error('Invalid data received from PageSpeed Insights API')
+    }
+
+    const roundScore = (score: number | undefined) => Math.round((score || 0) * 100)
+    const payload = {
+      performance: roundScore(data.lighthouseResult.categories.performance.score),
+      accessibility: roundScore(data.lighthouseResult.categories.accessibility.score),
+      bestPractices: roundScore(data.lighthouseResult.categories['best-practices'].score),
+      seo: roundScore(data.lighthouseResult.categories.seo.score),
+      websiteId: website.id,
+    }
+
+    const newWebsiteInsight = await WebsiteInsight.create(payload)
+    console.log('Created new Website Insight: ', newWebsiteInsight.id)
+    return data
   }
 }

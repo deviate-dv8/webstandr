@@ -13,7 +13,7 @@ export default class PSIQueue {
   ) {}
   async handle(websiteCreated: WebsiteCreated) {
     const website = websiteCreated.website
-    const data = await this.queueService.getWebsiteLastInsight(website)
+    const data = await this.queueService.getWebsiteLastInsight(website.url)
     if (data) {
       const payload = {
         performance: Math.round((data.lighthouseResult.categories.performance.score || 0) * 100),
