@@ -12,7 +12,7 @@ setTimeout(async () => {
   await queueService.scheduleSERPJobs(SERPQueue)
   await queueService.scheduleSpeedInsightJobs(SpeedInsightQueue)
   console.log('Starting Workers')
-  const SERPWorker = new Worker(SERPQueue.name, queueService.processSERPJob, {
+  const SERPWorker = new Worker(SERPQueue.name, (job) => queueService.processSERPJob(job), {
     connection: redisConfig.connections.main,
     concurrency: 5,
   })
