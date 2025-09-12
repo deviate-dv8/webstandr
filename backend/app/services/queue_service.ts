@@ -161,8 +161,18 @@ export class QueueService {
 
   async processSERPJob(job: Job) {
     console.log('Prompt and Website data in job:', job.data)
-    const { prompt, website }: { prompt: Prompt; website: Website } = job.data
-
+    let { prompt, website }: { prompt: Prompt; website: Website } = job.data
+    if (!prompt || !website) {
+      const promptId = job.id
+      prompt = (await Prompt.query().where({ id: promptId }).preload('website').first()) as Prompt
+      if (!prompt) {
+        throw new Error(`Prompt with ID ${promptId} not found`)
+      }
+      website = prompt.website
+      if (!website) {
+        throw new Error(`Website for Prompt ID ${promptId} not found`)
+      }
+    }
     try {
       const { serpResponsePayload, serpResultsPayload, analysis } = await this.fetchSERPData(
         prompt,
@@ -246,8 +256,14 @@ export class QueueService {
   }
 
   async processSpeedInsightJob(job: Job) {
-    const { website }: { website: Website } = job.data
-
+    let { website }: { website: Website } = job.data
+    if (!website) {
+      const websiteId = job.id
+      website = (await Website.find(websiteId)) as Website
+      if (!website) {
+        throw new Error(`Website with ID ${websiteId} not found`)
+      }
+    }
     let data
     try {
       data = await this.getWebsiteLastInsight(website.url)
