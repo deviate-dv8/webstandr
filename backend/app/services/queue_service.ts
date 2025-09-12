@@ -160,6 +160,7 @@ export class QueueService {
   }
 
   async processSERPJob(job: Job) {
+    console.log('Prompt and Website data in job:', job.data)
     const { prompt, website }: { prompt: Prompt; website: Website } = job.data
 
     try {

@@ -66,7 +66,7 @@ export default class PromptsController {
     }
     let newPrompt = await Prompt.create({ ...payload, userId: auth.user!.id })
     newPrompt = await newPrompt.refresh()
-    await PromptCreated.dispatch(newPrompt, website)
+    PromptCreated.dispatch(newPrompt, website)
     return newPrompt
   }
 
