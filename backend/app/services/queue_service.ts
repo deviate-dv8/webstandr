@@ -67,7 +67,7 @@ export class QueueService {
     for (const prompt of prompts) {
       await queue.upsertJobScheduler(
         prompt.id,
-        { pattern: this.scheduleToCron(prompt.schedule) },
+        { pattern: this.scheduleToCron('every5Sec') },
         { data: { prompt, website: prompt.website } }
       )
     }
@@ -163,7 +163,7 @@ export class QueueService {
     console.log('Prompt and Website data in job:', job.data)
     let { prompt, website }: { prompt: Prompt; website: Website } = job.data
     if (!prompt || !website) {
-      const promptId = job.id
+      const promptId = job.id!.split(':')[1]
       prompt = (await Prompt.query().where({ id: promptId }).preload('website').first()) as Prompt
       if (!prompt) {
         throw new Error(`Prompt with ID ${promptId} not found`)
@@ -258,7 +258,7 @@ export class QueueService {
   async processSpeedInsightJob(job: Job) {
     let { website }: { website: Website } = job.data
     if (!website) {
-      const websiteId = job.id
+      const websiteId = job.id!.split(':')[1]
       website = (await Website.find(websiteId)) as Website
       if (!website) {
         throw new Error(`Website with ID ${websiteId} not found`)
