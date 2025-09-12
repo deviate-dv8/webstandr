@@ -67,7 +67,7 @@ export class QueueService {
     for (const prompt of prompts) {
       await queue.upsertJobScheduler(
         prompt.id,
-        { pattern: this.scheduleToCron('every5Sec') },
+        { pattern: this.scheduleToCron(prompt.schedule) },
         { data: { prompt, website: prompt.website } }
       )
     }
