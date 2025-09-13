@@ -29,6 +29,7 @@ setTimeout(async () => {
     {
       connection: redisConfig.connections.main,
       concurrency: 5,
+      drainDelay: 500,
     }
   )
   speedInsightWorker.on('completed', (job) => {
