@@ -89,6 +89,7 @@ function getValidUrl(url: string) {
 }
 const confirm = useConfirm()
 const loadingDelete = ref(false)
+const loadingDeletePrompt = ref(false)
 const showEditWebsite = ref(false)
 const showCreatePrompt = ref(false);
 const loadingVerifyUrl = ref(false);
@@ -111,6 +112,9 @@ async function deleteWebsite() {
 
 async function handleSubmitDelete() {
 	await setLoading(() => { deleteWebsite() }, loadingDelete)
+}
+async function handleSubmitDeletePrompt(id: string, API: string, token: string, refresh: () => Promise<void>, resetForm: () => void) {
+	await setLoading(() => { deletePrompt(id, API, token, refresh, resetForm) }, loadingDeletePrompt)
 }
 async function handleSubmitEdit() {
 	await setLoading(async () => { await editWebsite() }, loadingDelete)
@@ -206,23 +210,9 @@ async function createPrompt() {
 async function handleSubmitCreatePrompt() {
 	await setLoading(() => { createPrompt() }, loadingCreatePrompt)
 }
-async function deletePrompt(promptId: string) {
-	await $fetch(`${API}/api/prompts/${promptId}`, {
-		method: "DELETE",
-		headers: {
-			'Authorization': `${token.value}`,
-		},
-		async onResponse({ response }) {
-			if (response.status == 200) {
-				await refresh()
-				resetFormCP()
-			}
-		}
-	})
-}
 
 async function handleDeletePrompt(e: Event) {
-	const id = (e.target as HTMLButtonElement).id;
+	const id = (e.currentTarget as HTMLButtonElement).id;
 	confirm.require({
 		message: 'Do you want to remove this prompt? This will delete all associated SERP Data.',
 		icon: 'pi pi-exclamation-circle',
@@ -230,8 +220,8 @@ async function handleDeletePrompt(e: Event) {
 		acceptLabel: 'Delete',
 		rejectLabel: 'Cancel',
 		rejectProps: { variant: 'outlined', },
-		acceptProps: { severity: 'danger', loading: loadingDelete },
-		accept: () => deletePrompt(id),
+		acceptProps: { severity: 'danger', loading: loadingDeletePrompt },
+		accept: () => handleSubmitDeletePrompt(id, API, token.value as string, refresh, resetFormCP),
 	})
 }
 
@@ -268,53 +258,45 @@ const providers = [
 		<Dialog v-model:visible="showEditWebsite" header="Edit Website" :style="{ width: '25rem' }" modal>
 			<form action="" class="flex flex-col gap-4 " novalidate @submit.prevent="">
 				<div class="flex justify-center">
-					<div
-class="h-12 w-12 border-gray-300 rounded-xl" :class="{
+					<div class="h-12 w-12 border-gray-300 rounded-xl" :class="{
 						'border': !iconUW,
 					}">
 						<img v-if="iconUW" :src="iconUW" alt="Website Icon" class="h-full w-full object-cover rounded-xl">
 					</div>
 				</div>
 				<div class="w-full">
-					<InputText
-v-model="nameUW" v-bind="nameAttrsUW" type="text" :placeholder="`Name - ${website?.name}`"
+					<InputText v-model="nameUW" v-bind="nameAttrsUW" type="text" :placeholder="`Name - ${website?.name}`"
 						class='w-full' />
 					<p class="text-sm text-red-500">{{ errorsUW.name }}</p>
 				</div>
 				<div class="w-full">
-					<InputText
-v-model="descriptionUW" v-bind="descriptionAttrsUW" type="text"
+					<InputText v-model="descriptionUW" v-bind="descriptionAttrsUW" type="text"
 						:placeholder="`Description - ${website?.description}`" class='w-full' />
 					<p class="text-sm text-red-500">{{ errorsUW.description }}</p>
 				</div>
 				<div class="w-full relative">
-					<InputText
-v-model="urlUW" v-bind="urlAttrsUW" type="text" :placeholder="`URL - ${website?.url}`"
+					<InputText v-model="urlUW" v-bind="urlAttrsUW" type="text" :placeholder="`URL - ${website?.url}`"
 						class="w-full" />
 					<Icon v-if="loadingVerifyUrl" name="line-md:loading-loop" class="absolute top-3 right-4" />
-					<Icon
-v-if="!loadingVerifyUrl && uniqueUrl" name="material-symbols:check"
+					<Icon v-if="!loadingVerifyUrl && uniqueUrl" name="material-symbols:check"
 						class="text-green-500 absolute top-3 right-4" />
 					<p class="text-sm text-red-500">{{ errorsUW.url }}</p>
 				</div>
 				<div class="relative w-full">
-					<InputText
-v-model="iconUW" v-bind="iconAttrsUW" type="text" :placeholder="`Icon URL - ${website?.icon}`"
+					<InputText v-model="iconUW" v-bind="iconAttrsUW" type="text" :placeholder="`Icon URL - ${website?.icon}`"
 						class="w-full" />
 					<Icon v-if="loadingFavicon" name="line-md:loading-loop" class="absolute top-3 right-4" />
 					<p class="text-sm text-red-500">{{ errorsUW.icon }}</p>
 				</div>
 				<div class="w-full">
-					<Dropdown
-v-model="typeUW" v-bind="typeAttrsUW" :options="['personal', 'competitor']" placeholder="Type"
+					<Dropdown v-model="typeUW" v-bind="typeAttrsUW" :options="['personal', 'competitor']" placeholder="Type"
 						class="w-full" />
 					<p class="text-sm text-red-500">{{ errorsUW.type }}</p>
 				</div>
 				<p v-if="editResponseError" class="text-sm text-red-500 text-center">{{ editResponseError }}</p>
 			</form>
 			<template #footer>
-				<Button
-type="button" variant="outlined" label="Cancel" severity="secondary"
+				<Button type="button" variant="outlined" label="Cancel" severity="secondary"
 					@click="showEditWebsite = false, resetFormUW()" />
 				<Button type="button" label="Save" @click="handleSubmitEdit" />
 			</template>
@@ -323,27 +305,23 @@ type="button" variant="outlined" label="Cancel" severity="secondary"
 		<section class="p-4 lg:p-8 border border-gray-300 rounded-xl">
 			<div class="flex gap-4 mb-12 justify-between">
 				<div class="flex gap-4">
-					<img
-:src="website?.icon" alt="Website Icon"
+					<img :src="website?.icon" alt="Website Icon"
 						class="object-contain h-16 w-16 lg:h-24 lg:w-24 rounded-xl overflow-hidden">
 					<div class="flex flex-col gap-4">
 						<div class="flex gap-2 items-center flex-col lg:flex-row">
 							<h1 class="text-xl lg:text-2xl font-bold">{{ website?.name }}</h1>
-							<div
-class="py-1 px-2 rounded-xl flex gap-2 items-center justify-center" :class="{
+							<div class="py-1 px-2 rounded-xl flex gap-2 items-center justify-center" :class="{
 								'bg-green-100 text-green-600': website?.type == 'personal',
 								'bg-orange-100 text-red-600': website?.type == 'competitor'
 							}">
-								<Icon
-:name="(website?.type == 'personal') ? 'flowbite:user-outline' : 'hugeicons:corporate'"
+								<Icon :name="(website?.type == 'personal') ? 'flowbite:user-outline' : 'hugeicons:corporate'"
 									class="text-lg" />
 								<p>
 									{{ website?.type }}
 								</p>
 							</div>
 						</div>
-						<NuxtLink
-:to="getValidUrl(website?.url as string)"
+						<NuxtLink :to="getValidUrl(website?.url as string)"
 							class="flex gap-2 items-center text-gray-500 hover:text-gray-700 duration-300">
 							<Icon name="mdi:web" class="text-lg" />
 							<p>
@@ -372,8 +350,7 @@ class="py-1 px-2 rounded-xl flex gap-2 items-center justify-center" :class="{
 						{{ website?.prompts_count ?? 0 }}
 					</p>
 				</div>
-				<div
-v-for="entry in Object.entries(website?.prompts_providers || {})" :key="entry[0]"
+				<div v-for="entry in Object.entries(website?.prompts_providers || {})" :key="entry[0]"
 					class="flex justify-between">
 					<div class="flex gap-2 items-center">
 						<Icon :name="providers.find(e => e.value == entry[0])?.icon as string" class="w-8" />
@@ -461,8 +438,7 @@ v-for="entry in Object.entries(website?.prompts_providers || {})" :key="entry[0]
 					<p class="text-sm text-red-500">{{ errorsCP.query }}</p>
 				</div>
 				<div class="w-full">
-					<Select
-v-model="providerCP" v-bind="providerAttrsCP" :options="providers" option-label="name"
+					<Select v-model="providerCP" v-bind="providerAttrsCP" :options="providers" option-label="name"
 						option-value="value" placeholder="Select Provider" class="w-full">
 						<template #header>
 							<p class="font-medium p-3">Available Providers</p>
@@ -470,8 +446,7 @@ v-model="providerCP" v-bind="providerAttrsCP" :options="providers" option-label=
 						<template #value="slotProps">
 							<div class="flex items-center gap-2">
 								<div v-if="slotProps.value" class="flex items-center">
-									<Icon
-:name="providers.find(target => target.value == slotProps.value)?.icon as string"
+									<Icon :name="providers.find(target => target.value == slotProps.value)?.icon as string"
 										class="mr-2" />
 									<p>{{ slotProps.value }}</p>
 								</div>
@@ -490,8 +465,7 @@ v-model="providerCP" v-bind="providerAttrsCP" :options="providers" option-label=
 					<p class="text-sm text-red-500">{{ errorsCP.provider }}</p>
 				</div>
 				<div class="w-full">
-					<Dropdown
-v-model="scheduleCP" v-bind="scheduleAttrsCP" :options="['daily', 'weekly', 'monthly', 'annually']"
+					<Dropdown v-model="scheduleCP" v-bind="scheduleAttrsCP" :options="['daily', 'weekly', 'monthly', 'annually']"
 						placeholder="Schedule" class="w-full" />
 					<p class="text-sm text-red-500">{{ errorsCP.provider }}</p>
 				</div>
@@ -499,8 +473,7 @@ v-model="scheduleCP" v-bind="scheduleAttrsCP" :options="['daily', 'weekly', 'mon
 			</form>
 			<p class="text-sm text-gray-800 my-4 text-center">Note: All prompts are immutable and cannot be edited</p>
 			<template #footer>
-				<Button
-type="button" variant="outlined" label="Cancel" severity="secondary"
+				<Button type="button" variant="outlined" label="Cancel" severity="secondary"
 					@click="showCreatePrompt = false, resetFormCP()" />
 				<Button type="button" label="Save" @click="handleSubmitCreatePrompt" />
 			</template>
