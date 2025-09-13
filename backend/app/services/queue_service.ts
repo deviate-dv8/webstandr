@@ -139,23 +139,53 @@ export class QueueService {
     serpResultsPayload: any[],
     analysis: any
   ): Promise<void> {
-    const trx = await db.transaction()
-    try {
-      const serpResponse = await SerpResponse.create(serpResponsePayload, { client: trx })
-      const serpAnalysisPayload = { ...analysis, serpResponseId: serpResponse.id }
-      const parsedSerpResultsPayload: (SerpResultType & { serpResponseId: string })[] =
-        serpResultsPayload.map((result) => ({
-          ...result,
-          serpResponseId: serpResponse.id,
-        }))
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const trx = await db.transaction()
+      try {
+        // Check if a SerpResponse already exists for the given requestId (idempotency check)
+        const existingResponse = await SerpResponse.query()
+          .where('requestId', serpResponsePayload.requestId)
+          .first()
 
-      await SerpAnalysis.create(serpAnalysisPayload, { client: trx })
-      await SerpResult.createMany(parsedSerpResultsPayload, { client: trx })
-      await trx.commit()
-    } catch (err) {
-      console.log('Transaction failed, rolling back.')
-      await trx.rollback()
-      throw new Error('Transaction failed, rolling back.')
+        if (existingResponse) {
+          console.log('SerpResponse already exists with ID:', existingResponse.id)
+          await trx.rollback()
+          return
+        }
+
+        // Create SerpResponse
+        const serpResponse = await SerpResponse.create(serpResponsePayload, { client: trx })
+
+        // Prepare SerpAnalysis payload
+        const serpAnalysisPayload = { ...analysis, serpResponseId: serpResponse.id }
+
+        // Prepare SerpResults payload
+        const parsedSerpResultsPayload: (SerpResultType & { serpResponseId: string })[] =
+          serpResultsPayload.map((result) => ({
+            ...result,
+            serpResponseId: serpResponse.id,
+          }))
+
+        console.log('Created SerpResponse with ID:', serpResponse.id)
+        console.log('Creating SerpAnalysis with payload:', serpAnalysisPayload)
+        console.log('Creating SerpResults with payload:', parsedSerpResultsPayload)
+
+        // Create SerpAnalysis and SerpResults
+        await SerpAnalysis.create(serpAnalysisPayload, { client: trx })
+        await SerpResult.createMany(parsedSerpResultsPayload, { client: trx })
+
+        // Commit transaction
+        await trx.commit()
+        return
+      } catch (err) {
+        await trx.rollback()
+        console.error('Transaction failed, rolling back. Attempt:', attempt + 1, err)
+
+        // Retry logic
+        if (attempt === 2) {
+          throw new Error('Transaction failed after multiple attempts.')
+        }
+      }
     }
   }
 
@@ -288,8 +318,21 @@ export class QueueService {
       websiteId: website.id,
     }
 
-    const newWebsiteInsight = await WebsiteInsight.create(payload)
-    console.log('Created new Website Insight: ', newWebsiteInsight.id)
-    return data
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const trx = await db.transaction()
+      try {
+        const newWebsiteInsight = await WebsiteInsight.create(payload, { client: trx })
+        console.log('Created new Website Insight: ', newWebsiteInsight.id)
+        await trx.commit()
+        return data
+      } catch (error) {
+        await trx.rollback()
+        if (attempt === 2) {
+          console.error('Failed after multiple attempts:', error)
+          throw error
+        }
+        console.warn('Retrying transaction due to error:', error)
+      }
+    }
   }
 }
