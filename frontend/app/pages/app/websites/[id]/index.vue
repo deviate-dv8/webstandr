@@ -83,6 +83,7 @@ const [iconUW, iconAttrsUW] = defineFieldUW('icon')
 const [typeUW, typeAttrsUW] = defineFieldUW('type')
 const editResponseError = ref("")
 const createPromptResponseError = ref("")
+
 function getValidUrl(url: string) {
 	if (!url) return '#'; // Fallback for undefined URLs
 	return url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
@@ -208,7 +209,7 @@ async function createPrompt() {
 	}
 }
 async function handleSubmitCreatePrompt() {
-	await setLoading(() => { createPrompt() }, loadingCreatePrompt)
+	await setLoading(async () => { await createPrompt(); resetFormCP() }, loadingCreatePrompt)
 }
 
 async function handleDeletePrompt(e: Event) {

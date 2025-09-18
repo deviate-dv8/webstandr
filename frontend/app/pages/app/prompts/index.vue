@@ -94,7 +94,7 @@ async function handleDeletePrompt(e: Event) {
 				</div>
 			</section>
 			<section class="p-4 border border-gray-300 rounded-xl">
-				<PromptTable :prompts="prompts as Prompt[]" :delete-function="handleDeletePrompt" />
+				<PromptTable :prompts="prompts as Prompt[]" :delete-function="handleDeletePrompt" paginator :rows="5" />
 			</section>
 		</section>
 	</main>

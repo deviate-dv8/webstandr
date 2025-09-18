@@ -6,7 +6,7 @@ interface PromptsExtended extends Prompt {
 }
 const props = defineProps({
 	prompts: {
-		type: Array as () => PromptsExtended[],
+		type: Array as () => (PromptsExtended[] | Prompt[]),
 		required: true
 	},
 	deleteFunction: {
@@ -18,18 +18,20 @@ async function handlePromptRedirect(e: { data: Prompt }) {
 	const prompt = e.data
 	await navigateTo(`/app/prompts/${prompt.id}`)
 }
-
 const columns = [
-	(props.prompts.some(p => p.website)) ? { field: 'website.name', header: 'Website' } : null,
-	{ field: 'name', header: 'Name' },
-	{ field: 'query', header: 'Query' },
-	{ field: 'provider', header: 'Provider' },
-	{ field: 'schedule', header: 'Schedule' },
+	...(props.prompts.some((p) => isPromptsExtended(p) && 'website' in p)
+		? [{ field: 'website.name', header: 'Website' }]
+		: []),
 	{ field: 'name', header: 'Name' },
 	{ field: 'query', header: 'Query' },
 	{ field: 'provider', header: 'Provider' },
 	{ field: 'schedule', header: 'Schedule' },
 ]
+
+// Type guard to check if an item is PromptsExtended
+function isPromptsExtended(p: Prompt | PromptsExtended): p is PromptsExtended {
+	return 'website' in p;
+}
 
 </script>
 <template>
