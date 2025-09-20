@@ -10,6 +10,9 @@ const { id } = useRoute().params
 const { token } = useAuth()
 interface PromptExtended extends Prompt {
 	website: Website
+	serp_responses_count: number
+	serp_results_count: number
+	serp_analyses_count: number
 }
 
 const { data: prompt, error } = await useFetch<PromptExtended>(`${API}/api/prompts/${id}`, {
@@ -122,6 +125,27 @@ async function handleDeletePrompt() {
 				<div class="flex gap-2">
 					<p class="font-bold">Description:</p>
 					<p class="text-gray-600">{{ prompt?.website?.description }}</p>
+				</div>
+			</div>
+			<div class="border border-gray-300 rounded-xl p-4">
+				<h2 class="text-lg font-bold mb-4">SERP Data Stats</h2>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">SERP Responses</p>
+					<p class="text-lg font-bold">
+						{{ prompt?.serp_responses_count ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">SERP Analysis</p>
+					<p class="text-lg font-bold">
+						{{ prompt?.serp_analyses_count ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">SERP Results</p>
+					<p class="text-lg font-bold">
+						{{ prompt?.serp_results_count ?? 0 }}
+					</p>
 				</div>
 			</div>
 		</section>

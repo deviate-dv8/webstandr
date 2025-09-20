@@ -1,6 +1,9 @@
 import PromptCreated from '#events/prompt_created'
 import PromptDeleted from '#events/prompt_deleted'
 import Prompt from '#models/prompt'
+import SerpAnalysis from '#models/serp_analysis'
+import SerpResponse from '#models/serp_response'
+import SerpResult from '#models/serp_result'
 import Website from '#models/website'
 import { createPromptValidator, updatePromptvalidator } from '#validators/prompt'
 import type { HttpContext } from '@adonisjs/core/http'
@@ -79,7 +82,35 @@ export default class PromptsController {
       .where({ id: params.id, userId: auth.user!.id })
       .preload('website')
       .firstOrFail()
-    return prompt
+    const querySerpResponseCount = await SerpResponse.query()
+      .where('promptId', prompt.id)
+      .count('* as total')
+      .first()
+    const serpResponsesCount = querySerpResponseCount
+      ? Number.parseInt(querySerpResponseCount.$extras.total)
+      : 0
+    const querySerpResultsCount = await SerpResult.query()
+      .join('serp_responses', 'serp_results.serp_response_id', 'serp_responses.id')
+      .where('serp_responses.prompt_id', prompt.id)
+      .count('* as total')
+      .first()
+    const serpResultsCount = querySerpResultsCount
+      ? Number.parseInt(querySerpResultsCount.$extras.total)
+      : 0
+    const serpAnalysesCountQuery = await SerpAnalysis.query()
+      .join('serp_responses', 'serp_analyses.serp_response_id', 'serp_responses.id')
+      .where('serp_responses.prompt_id', prompt.id)
+      .count('* as total')
+      .first()
+    const serpAnalysesCount = serpAnalysesCountQuery
+      ? Number.parseInt(serpAnalysesCountQuery.$extras.total)
+      : 0
+    return {
+      ...prompt.toJSON(),
+      serp_responses_count: serpResponsesCount,
+      serp_results_count: serpResultsCount,
+      serp_analyses_count: serpAnalysesCount,
+    }
   }
 
   /**

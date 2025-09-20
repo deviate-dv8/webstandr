@@ -359,13 +359,7 @@ const providers = [
 				</div>
 			</div>
 			<div class="border border-gray-300 rounded-xl p-4">
-				<h2 class="text-lg font-bold mb-4">SERP Stats</h2>
-				<div class="flex justify-between">
-					<p class="text text-gray-600 fond-medium">SERP Results</p>
-					<p class="text-lg font-bold">
-						{{ website?.serp_results_count ?? 0 }}
-					</p>
-				</div>
+				<h2 class="text-lg font-bold mb-4">Total SERP Data Stats</h2>
 				<div class="flex justify-between">
 					<p class="text text-gray-600 fond-medium">SERP Responses</p>
 					<p class="text-lg font-bold">
@@ -376,6 +370,12 @@ const providers = [
 					<p class="text text-gray-600 fond-medium">SERP Analysis</p>
 					<p class="text-lg font-bold">
 						{{ website?.serp_analyses_count ?? 0 }}
+					</p>
+				</div>
+				<div class="flex justify-between">
+					<p class="text text-gray-600 fond-medium">SERP Results</p>
+					<p class="text-lg font-bold">
+						{{ website?.serp_results_count ?? 0 }}
 					</p>
 				</div>
 			</div>
