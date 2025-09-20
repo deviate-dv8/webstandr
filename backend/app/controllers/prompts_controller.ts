@@ -74,7 +74,12 @@ export default class PromptsController {
    * Show individual record
    */
   async show({ params, auth }: HttpContext) {
-    return Prompt.findByOrFail({ id: params.id, userId: auth.user!.id })
+    // return Prompt.findByOrFail({ id: params.id, userId: auth.user!.id })
+    const prompt = await Prompt.query()
+      .where({ id: params.id, userId: auth.user!.id })
+      .preload('website')
+      .firstOrFail()
+    return prompt
   }
 
   /**

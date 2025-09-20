@@ -87,9 +87,42 @@ async function handleDeletePrompt() {
 				<Button severity="danger" icon="pi pi-trash" label="Delete" class="w-full" @click="handleDeletePrompt" />
 			</div>
 		</section>
-		<section class="p-4 lg:p-8 border border-gray-300 rounded-xl flex justify-between mt-8">
+		<section class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
 			<div class="border border-gray-300 rounded-xl p-4">
-				<p>Website</p>
+				<h2 class="text-lg font-bold mb-4">Website Info</h2>
+				<div class="flex gap-4 mb-4 justify-between">
+					<div class="flex gap-4">
+						<img :src="prompt?.website?.icon" alt="Website Icon"
+							class="object-contain h-16 w-16 lg:h-24 lg:w-24 rounded-xl overflow-hidden">
+						<div class="flex flex-row lg:flex-col gap-4">
+							<div class="flex gap-2 items-center flex-col lg:flex-row">
+								<h1 class="text-xl lg:text-2xl font-bold">{{ prompt?.website?.name }}</h1>
+								<div class="py-1 px-2 rounded-xl flex gap-2 items-center justify-center" :class="{
+									'bg-green-100 text-green-600': prompt?.website?.type == 'personal',
+									'bg-orange-100 text-red-600': prompt?.website?.type == 'competitor'
+								}">
+									<Icon :name="(prompt?.website?.type == 'personal') ? 'flowbite:user-outline' : 'hugeicons:corporate'"
+										class="text-lg" />
+									<p>
+										{{ prompt?.website?.type }}
+									</p>
+								</div>
+							</div>
+							<NuxtLink :to="getValidUrl(prompt?.website?.url as string)"
+								class="flex gap-2 items-center text-gray-500 hover:text-gray-700 duration-300">
+								<Icon name="mdi:web" class="text-lg" />
+								<p>
+									{{ prompt?.website?.url }}
+								</p>
+								<Icon name="mdi:open-in-new" class="text-lg" />
+							</NuxtLink>
+						</div>
+					</div>
+				</div>
+				<div class="flex gap-2">
+					<p class="font-bold">Description:</p>
+					<p class="text-gray-600">{{ prompt?.website?.description }}</p>
+				</div>
 			</div>
 		</section>
 	</main>

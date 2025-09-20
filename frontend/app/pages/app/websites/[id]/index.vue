@@ -84,10 +84,6 @@ const [typeUW, typeAttrsUW] = defineFieldUW('type')
 const editResponseError = ref("")
 const createPromptResponseError = ref("")
 
-function getValidUrl(url: string) {
-	if (!url) return '#'; // Fallback for undefined URLs
-	return url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
-}
 const confirm = useConfirm()
 const loadingDelete = ref(false)
 const loadingDeletePrompt = ref(false)
