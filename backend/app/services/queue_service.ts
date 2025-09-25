@@ -87,10 +87,11 @@ export class QueueService {
     const API = provider === 'google' ? SERPGOOGLE : SERPBASE
 
     try {
-      const { data } = await axios.post<SerpResponseType>(`${API}/api/serp/search`, {
-        provider,
-        query,
-      })
+      const data = await this.performSearchWithRetries(API, { provider, query }, 10)
+
+      if (!data || !data.results) {
+        throw new Error('Invalid response: data or results is undefined')
+      }
 
       const analysis: {
         averageRank: number | null
@@ -134,6 +135,24 @@ export class QueueService {
     }
   }
 
+  private async performSearchWithRetries(apiUrl: string, payload: any, maxAttempts: number) {
+    let attempts = 0
+    while (attempts < maxAttempts) {
+      try {
+        return await this.performSearch(apiUrl, payload)
+      } catch (error) {
+        attempts++
+        if (attempts >= maxAttempts) {
+          throw error
+        }
+      }
+    }
+  }
+
+  private async performSearch(apiUrl: string, payload: any) {
+    const { data } = await axios.post<SerpResponseType>(`${apiUrl}/api/serp/search`, payload)
+    return data
+  }
   async saveToDB(
     serpResponsePayload: any,
     serpResultsPayload: any[],

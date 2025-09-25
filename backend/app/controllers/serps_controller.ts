@@ -27,10 +27,9 @@ export default class SerpsController {
     const SERPGOOGLE = env.get('SERP_GOOGLE')
     const SERPBASE = env.get('SERP_BASE')
     const API = payload.provider === 'google' ? SERPGOOGLE : SERPBASE
+
     try {
-      const { data } = await axios.post(`${API}/api/serp/search`, {
-        ...payload,
-      })
+      const data = await this.performSearchWithRetries(API, payload, 10)
       return data
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -45,6 +44,27 @@ export default class SerpsController {
         })
       }
     }
+  }
+
+  private async performSearchWithRetries(apiUrl: string, payload: any, maxAttempts: number) {
+    let attempts = 0
+    while (attempts < maxAttempts) {
+      try {
+        return await this.performSearch(apiUrl, payload)
+      } catch (error) {
+        attempts++
+        if (attempts >= maxAttempts) {
+          throw error
+        }
+      }
+    }
+  }
+
+  private async performSearch(apiUrl: string, payload: any) {
+    const { data } = await axios.post(`${apiUrl}/api/serp/search`, {
+      ...payload,
+    })
+    return data
   }
   async getFavicon({ request, response }: HttpContext) {
     const { url } = await request.validateUsing(faviconValidator)
