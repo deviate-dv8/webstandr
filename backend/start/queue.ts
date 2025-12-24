@@ -15,6 +15,10 @@ setTimeout(async () => {
   const SERPWorker = new Worker(SERPQueue.name, (job) => queueService.processSERPJob(job), {
     connection: redisConfig.connections.main,
     concurrency: 5,
+    removeOnComplete: {
+      age: 3600,
+      count: 10,
+    },
   })
   SERPWorker.on('completed', (job) => {
     console.log(`Job completed<SERPWorker>: ${job.id}`)
@@ -30,6 +34,10 @@ setTimeout(async () => {
       connection: redisConfig.connections.main,
       concurrency: 5,
       drainDelay: 500,
+      removeOnComplete: {
+        age: 3600,
+        count: 10,
+      },
     }
   )
   speedInsightWorker.on('completed', (job) => {
